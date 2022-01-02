@@ -1,0 +1,42 @@
+@startuml
+title <color:red>【TTL复制数据】流程图</color>
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+
+box demo #B0C4DE
+participant Client
+participant ExecutorServiceTtlWrapper
+participant TtlRunnable
+participant TransmittableThreadLocal
+participant InheritableThreadLocal
+end box
+
+== 业务流程开始 ==
+Client -> ExecutorServiceTtlWrapper:submit()
+ExecutorServiceTtlWrapper -> TtlRunnable:get()
+TtlRunnable -> TtlRunnable:TtlRunnable()
+TtlRunnable -> TtlRunnable:capture()
+TtlRunnable -> TtlRunnable:captureTtlValues()
+TtlRunnable -> TransmittableThreadLocal:copyValue()
+TransmittableThreadLocal -> InheritableThreadLocal:get()
+
+InheritableThreadLocal --> TtlRunnable:拿到父线程的数据拷贝
+note right of TtlRunnable
+将这部分数据拷贝到TtlRunnable的capturedRef属性上
+end note
+
+== 线程池中的工作线程 ==
+
+ -> TtlRunnable:run()
+
+ TtlRunnable -> TtlRunnable:replay()
+ note right of TtlRunnable
+其中captured就是从父线程中传递过来的
+ end note
+
+TtlRunnable -> TransmittableThreadLocal:replay()
+note right of TransmittableThreadLocal
+将从父线程拷贝的数据复制到该线程上
+end note
+
+@enduml
