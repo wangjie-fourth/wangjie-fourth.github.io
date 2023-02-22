@@ -161,6 +161,103 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/11/02/experience/lombokBugs/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://raw.githubusercontent.com/wangjie-fourth/wangjie-fourth.github.io/master/images/people/avatar.jpeg">
+      <meta itemprop="name" content="wangjie_fourth">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="wangjie_fourth">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/11/02/experience/lombokBugs/" class="post-title-link" itemprop="url">使用Lombok遇到的问题</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-11-02 21:06:47" itemprop="dateCreated datePublished" datetime="2020-11-02T21:06:47+08:00">2020-11-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-12-16 16:22:22" itemprop="dateModified" datetime="2020-12-16T16:22:22+08:00">2020-12-16</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%88%AC%E5%9D%91%E8%B7%AF/" itemprop="url" rel="index"><span itemprop="name">爬坑路</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.6k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>自从去年接触过<code>Lombok</code>后，就变成它深深的迷弟，毕竟提高了老高的生产力。以至于在新项目上，我会无脑使用<code>Lombok</code>，在改老项目的时候，我也是尽量使用<code>Lombok</code>。</p>
+<p>之前也听说过<code>Lombok</code>的缺点，无非是对高版本的<code>JDK</code>不支持，会强制要求所有开发人员都使用<code>Lombok</code>。但这对于我们写业务代码人来说，这都不是事。业务系统谁会没事升级<code>JDK</code>，能提高生产力的工具谁又会拒绝。所以上面俩个缺点对于我来说，都不是事。</p>
+<p>但自从上次遇到一个坑之后，发现这事就不那么简单了。在老系统中使用<code>Lombok</code>替换<code>get</code>、<code>set</code>是有坑的，万一踩到，就是生产事故了；而且像<code>Lombok</code>这样覆盖字节码文件，而不是生成新字节码文件的操作，的确是不太好。只要踩到坑，又会坑到你怀疑人生。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/11/02/experience/lombokBugs/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://example.com/2020/10/30/chat/start/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -704,7 +801,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">35</span>
+          <span class="site-state-item-count">36</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -774,12 +871,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">109k</span>
+    <span title="站点总字数">115k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:39</span>
+    <span title="站点阅读时长">1:45</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
   </div>
