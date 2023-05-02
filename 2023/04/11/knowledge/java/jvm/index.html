@@ -20,16 +20,18 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="在此写一下我理解中的JVM是啥样子的，一是为了更好理解jvm的执行过程，二是为了以后可能会被问到问题做准备。博客内容大致分为：  背景提要 JVM的基本结构 字节码执行引擎的执行过程">
+  <meta name="description" content="在此写一下我理解中的JVM是啥样子的，一是为了更好理解jvm的执行过程，二是为了以后可能会被问到问题做准备。博客内容大致分为：  背景提要 JVM的基本结构 字节码执行引擎的执行过程 class文件结构 类加载与双亲委派模型">
 <meta property="og:type" content="article">
 <meta property="og:title" content="JVM内部是如何运行的">
 <meta property="og:url" content="http://example.com/2023/04/11/knowledge/java/jvm/index.html">
 <meta property="og:site_name" content="wangjie_fourth">
-<meta property="og:description" content="在此写一下我理解中的JVM是啥样子的，一是为了更好理解jvm的执行过程，二是为了以后可能会被问到问题做准备。博客内容大致分为：  背景提要 JVM的基本结构 字节码执行引擎的执行过程">
+<meta property="og:description" content="在此写一下我理解中的JVM是啥样子的，一是为了更好理解jvm的执行过程，二是为了以后可能会被问到问题做准备。博客内容大致分为：  背景提要 JVM的基本结构 字节码执行引擎的执行过程 class文件结构 类加载与双亲委派模型">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/images/jvm/jvm_structure.png">
+<meta property="og:image" content="http://example.com/images/jvm/classLoading.png">
+<meta property="og:image" content="http://example.com/images/jvm/class_file_structure.png">
 <meta property="article:published_time" content="2023-04-11T13:12:12.000Z">
-<meta property="article:modified_time" content="2023-04-21T15:00:10.027Z">
+<meta property="article:modified_time" content="2023-05-02T05:01:49.646Z">
 <meta property="article:author" content="wangjie_fourth">
 <meta property="article:tag" content="JVM">
 <meta name="twitter:card" content="summary">
@@ -199,7 +201,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-04-21 23:00:10" itemprop="dateModified" datetime="2023-04-21T23:00:10+08:00">2023-04-21</time>
+                <time title="修改时间：2023-05-02 13:01:49" itemprop="dateModified" datetime="2023-05-02T13:01:49+08:00">2023-05-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -217,14 +219,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>2.8k</span>
+              <span>5.4k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>3 分钟</span>
+              <span>5 分钟</span>
             </span>
 
         </div>
@@ -240,14 +242,15 @@
 <ul>
 <li>背景提要</li>
 <li>JVM的基本结构</li>
-<li>字节码执行引擎的执行过程</li>
+<li>字节码执行引擎的执行过程<ul>
+<li>class文件结构</li>
+<li>类加载与双亲委派模型</li>
+</ul>
+</li>
 </ul>
 <span id="more"></span>
 
-<h1 id="背景提要"><a href="#背景提要" class="headerlink" title="背景提要"></a>背景提要</h1><p>在开始具体写之前，先明确一下我以前长时间被迷惑的概念。</p>
-<ul>
-<li>虚拟机规范名称与实际实现名称可能不同<br>这里主要说的是堆的元空间、永久代、方法区。要明白方法区是虚拟机规范中的概念，而元空间、永久代是不同虚拟机对其实现的名称。</li>
-</ul>
+<h1 id="背景提要"><a href="#背景提要" class="headerlink" title="背景提要"></a>背景提要</h1><p>在开始具体写之前，先明确一下我以前长时间被迷惑的概念。<br>（1）虚拟机规范名称与实际实现名称可能不同<br>这里主要说的是堆的元空间、永久代、方法区。要明白方法区是虚拟机规范中的概念，而元空间、永久代是不同虚拟机对其实现的名称。</p>
 <h1 id="JVM的基本结构"><a href="#JVM的基本结构" class="headerlink" title="JVM的基本结构"></a>JVM的基本结构</h1><p><img src="/images/jvm/jvm_structure.png"></p>
 <blockquote>
 <p>以下内容是参考java虚拟机规范的2.5、2.6节和网上其他信息汇总。</p>
@@ -265,8 +268,8 @@
 </ul>
 <p>2、stack<br>栈帧。是线程每次进入一个方法后，都创建的一个对象。其内部组成部分有：</p>
 <ul>
-<li>局部变量表</li>
-<li>操作数栈</li>
+<li>局部变量表：存储方法用需要用到的局部变量信息，比如：this</li>
+<li>操作数栈：用于存储后面计算所需要的变量和符号</li>
 </ul>
 <p>外部引用对象为什么是final的？</p>
 <p>3、Native Method Stack<br>指的是一些Native方法栈。完全不懂，找时间看看内部实现，不过估计得学一学C++了。（又是一个不知道什么时候能完成的坑）</p>
@@ -284,11 +287,52 @@
 <li>永久代是Java7之前实现方法区的名称，且其是作为堆的一部分</li>
 <li>元空间是Java8之后实现方法区的名称，是作为堆外内存的一部分</li>
 </ul>
-<h1 id="字节码执行引擎的执行过程"><a href="#字节码执行引擎的执行过程" class="headerlink" title="字节码执行引擎的执行过程"></a>字节码执行引擎的执行过程</h1><p>1、背景<br>在说具体字节码执行引擎的工作流程之前，先说说java代码是如何变成字节码的。在你写完java代码，点击构建的时候，jdk会把每个java文件转换成一个符合当前版本语法要求的BST，如果转换失败，那就会提示编译失败。如果编译成功，就会遍历这颗BST，然后按照规则写.class文件。至此，字节码文件就生成好了。</p>
-<h1 id="一堆疑问"><a href="#一堆疑问" class="headerlink" title="一堆疑问"></a>一堆疑问</h1><p>1、用双引号包含的字符串是放在字符串常量池的，而字符串常量池是每个class单独维护的，那为什么我在俩个class定义相同的字符串，他们的引用却相同？</p>
+<h1 id="字节码执行引擎的执行过程"><a href="#字节码执行引擎的执行过程" class="headerlink" title="字节码执行引擎的执行过程"></a>字节码执行引擎的执行过程</h1><p>在说具体字节码执行引擎的工作流程之前，先说说java代码是如何变成字节码的。在你写完java代码，点击构建的时候，javac命令会把每个java文件转换成一个符合当前版本语法要求的BST，如果转换失败，那就会提示编译失败。如果编译成功，就会遍历这颗BST，然后按照规则写.class文件。至此，字节码文件就生成好了。<br>然后在jvm运行时，发现一个class还没有被加载，此时就会触发类加载流程。jvm会在cp里面不断遍历的去找全限定名称一致的class文件，找到后就会通过classLoader将class文件转换字节码存储到方法区，字节码执行引擎需要执行该class的字节码指令时，就会去方法区找到该字节码来解释执行，生成符合当前平台要求的机器码，最后cpu才会按照这些机器码执行指令。<br><img src="/images/jvm/classLoading.png"><br>至此，就是大概的java代码编写到实际运行的过程。接下来主要是看class文件存储的内容是啥，一个class是如何被加载到jvm中，然后再紧接看一个例子。</p>
+<h2 id="class文件结构"><a href="#class文件结构" class="headerlink" title="class文件结构"></a>class文件结构</h2><p>从编译器的角度来看，一个java文件就是一个编译单元，就比如说：一个java文件有多个类，而这些类会各自生成一个class文件，就会各自对应一个编译单元。<br>1、文件结构<br><img src="/images/jvm/class_file_structure.png"></p>
+<ul>
+<li>magic：一般特殊文件都有这个标识</li>
+<li>minor_version：当前jdk的小版本</li>
+<li>major_version：当前jdk的大版本</li>
+<li>constant_pool_count：常量池个数</li>
+<li>constant_pool：一般用来减少class存储空间，后续的字节码指令后面就可以直接用这个常量池的下标<ul>
+<li>可以存代码中方法的执行信息</li>
+</ul>
+</li>
+<li>access_flags：当前类的访问标记</li>
+<li>this_class：当前类的全限定类名</li>
+<li>super_class：当前类的父类全限定类名</li>
+<li>interfaces_count：</li>
+<li>interfaces：接口</li>
+<li>fields_count</li>
+<li>fields：属性</li>
+<li>methods_count</li>
+<li>methods：方法</li>
+<li>attributes_count</li>
+<li>attributes：</li>
+</ul>
+<h2 id="执行字节码的示例"><a href="#执行字节码的示例" class="headerlink" title="执行字节码的示例"></a>执行字节码的示例</h2><p>1、常见字节码指令</p>
+<ul>
+<li>invokevirtual：一般实例例⽅方法，有多态；</li>
+<li>invokeinterface：接⼝口⽅方法，有多态</li>
+<li>invokestatic：静态⽅方法，⽆无多态</li>
+<li>invokespecial：特殊⽅方法，⽆无多态；特殊方法：private方法、类的构造方法、static静态代码快等等</li>
+<li>invokedynamic：动态调⽤用，JDK 7 新增，⽅方法⽆无需在编译时确定</li>
+</ul>
+<blockquote>
+<p>多态的实现是方法栈帧的局部变量表的this实现的，实例会现在这个this中寻找，找不到再去父类中寻找。而在静态方法、static静态代码块中方法的局部变量表无this，也就没法实现多态</p>
+</blockquote>
+<p>2、方法执行过程</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Base</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testOverride</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Base!&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">Sub</span> <span class="keyword">extends</span> <span class="title">Base</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testOverride</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Sub!&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">testCodeExecFlow</span><span class="params">(<span class="keyword">int</span> a)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            a++;</span><br><span class="line">            System.out.println(a);</span><br><span class="line">            testOverride();</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IllegalArgumentException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IllegalStateException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;end&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> a = <span class="number">10</span>;</span><br><span class="line">        <span class="keyword">boolean</span> result = <span class="keyword">new</span> Sub().testCodeExecFlow(a);</span><br><span class="line">        System.out.println(result);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>（1）在main方法开始执行时，遇到调用方法的字节码指令时，该线程的方法栈会新增一个栈帧，并将一些参数的地址拷贝赋值到新栈帧的局部变量表中。如果是普通实例方法，局部变量表的第一个参数就是this，然后根据this的地址到堆中寻找该变量，然后现在this找对应的方法，如果没有就去父类找，这就是多态的内部实现。后续会在这新的栈帧开始执行字节码。<br>（2）当新的方法执行完后，会将当前栈帧的操作数栈的值放置调用者栈帧中的操作数栈。如果方法内部有finally块，当前栈帧会接着执行该代码块的字节码。<br>（3）如果一个方法有捕获异常时，会在方法的字节码中指定它的处理流程，比如：</p>
+<figure class="highlight shell"><figcaption><span>script</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">public testCodeExecFlow(I)Z</span><br><span class="line">  TRYCATCHBLOCK L0 L1 L2 java/lang/IllegalArgumentException</span><br><span class="line">  TRYCATCHBLOCK L0 L1 L3 java/lang/IllegalStateException</span><br><span class="line">  </span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line"> L11</span><br><span class="line">  LOCALVARIABLE e Ljava/lang/IllegalArgumentException; L7 L8 2</span><br><span class="line">  LOCALVARIABLE e Ljava/lang/IllegalStateException; L10 L9 2</span><br><span class="line">  </span><br><span class="line">  ...</span><br></pre></td></tr></table></figure>
+<p>如果方法中没有指定异常的处理流程时，就会用线程最后兜底的异常处理方法：比如Thread的uncaughtExceptionHandler。</p>
+<h1 id="类加载与双亲委派模型"><a href="#类加载与双亲委派模型" class="headerlink" title="类加载与双亲委派模型"></a>类加载与双亲委派模型</h1><h1 id="一堆疑问"><a href="#一堆疑问" class="headerlink" title="一堆疑问"></a>一堆疑问</h1><p>1、用双引号包含的字符串是放在字符串常量池的，而字符串常量池是每个class单独维护的，那为什么我在俩个class定义相同的字符串，他们的引用却相同？<br>太捞了，这个疑问。这是因为我把方法区中的运行时常量池和字符串常量池混淆了，字符串常量池不是每个class单独维护，每个class单独维护的是运行时常量池，这是俩个概念。</p>
 <hr>
 <ul>
 <li>TLAB分析：<a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000039676470">https://segmentfault.com/a/1190000039676470</a></li>
+<li>查询class文件结构的工具：<a target="_blank" rel="noopener" href="https://github.com/zxh0/classpy">https://github.com/zxh0/classpy</a></li>
+<li>jvm虚拟机规范：<a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/specs/jvms/se8/html/index.html">https://docs.oracle.com/javase/specs/jvms/se8/html/index.html</a></li>
+<li>ASM ByteCode Viewer：Idea插件，可以看源码编译后的字节码信息</li>
 </ul>
 
     </div>
@@ -371,7 +415,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%83%8C%E6%99%AF%E6%8F%90%E8%A6%81"><span class="nav-number">1.</span> <span class="nav-text">背景提要</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#JVM%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84"><span class="nav-number">2.</span> <span class="nav-text">JVM的基本结构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%88%E5%8C%BA"><span class="nav-number">2.1.</span> <span class="nav-text">栈区</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%84%E6%88%90%E7%BB%93%E6%9E%84"><span class="nav-number">2.1.1.</span> <span class="nav-text">组成结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E9%99%85%E5%B1%95%E7%A4%BA"><span class="nav-number">2.1.2.</span> <span class="nav-text">实际展示</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A0%86%E5%8C%BA"><span class="nav-number">2.2.</span> <span class="nav-text">堆区</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%B3%95%E5%8C%BA"><span class="nav-number">2.3.</span> <span class="nav-text">方法区</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AD%97%E8%8A%82%E7%A0%81%E6%89%A7%E8%A1%8C%E5%BC%95%E6%93%8E%E7%9A%84%E6%89%A7%E8%A1%8C%E8%BF%87%E7%A8%8B"><span class="nav-number">3.</span> <span class="nav-text">字节码执行引擎的执行过程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%80%E5%A0%86%E7%96%91%E9%97%AE"><span class="nav-number">4.</span> <span class="nav-text">一堆疑问</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%83%8C%E6%99%AF%E6%8F%90%E8%A6%81"><span class="nav-number">1.</span> <span class="nav-text">背景提要</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#JVM%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84"><span class="nav-number">2.</span> <span class="nav-text">JVM的基本结构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%88%E5%8C%BA"><span class="nav-number">2.1.</span> <span class="nav-text">栈区</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%84%E6%88%90%E7%BB%93%E6%9E%84"><span class="nav-number">2.1.1.</span> <span class="nav-text">组成结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E9%99%85%E5%B1%95%E7%A4%BA"><span class="nav-number">2.1.2.</span> <span class="nav-text">实际展示</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A0%86%E5%8C%BA"><span class="nav-number">2.2.</span> <span class="nav-text">堆区</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%B3%95%E5%8C%BA"><span class="nav-number">2.3.</span> <span class="nav-text">方法区</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AD%97%E8%8A%82%E7%A0%81%E6%89%A7%E8%A1%8C%E5%BC%95%E6%93%8E%E7%9A%84%E6%89%A7%E8%A1%8C%E8%BF%87%E7%A8%8B"><span class="nav-number">3.</span> <span class="nav-text">字节码执行引擎的执行过程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#class%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84"><span class="nav-number">3.1.</span> <span class="nav-text">class文件结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E5%AD%97%E8%8A%82%E7%A0%81%E7%9A%84%E7%A4%BA%E4%BE%8B"><span class="nav-number">3.2.</span> <span class="nav-text">执行字节码的示例</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%B1%BB%E5%8A%A0%E8%BD%BD%E4%B8%8E%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%A8%A1%E5%9E%8B"><span class="nav-number">4.</span> <span class="nav-text">类加载与双亲委派模型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%80%E5%A0%86%E7%96%91%E9%97%AE"><span class="nav-number">5.</span> <span class="nav-text">一堆疑问</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -457,12 +501,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">124k</span>
+    <span title="站点总字数">126k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:52</span>
+    <span title="站点阅读时长">1:55</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
   </div>
