@@ -20,12 +20,12 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="在此写一下我理解中的JVM是啥样子的，一是为了更好理解jvm的执行过程，二是为了以后可能会被问到问题做准备。博客内容大致分为：  背景提要 JVM的基本结构 字节码执行引擎的执行过程 类加载与双亲委派模型">
+  <meta name="description" content="在此写一下我理解中的JVM是啥样子的，一是为了更好理解jvm的执行过程，二是为了以后可能会被问到问题做准备。博客内容大致分为：  背景提要 JVM的基本结构 字节码执行引擎的执行过程 class文件结构   类加载与双亲委派模型">
 <meta property="og:type" content="article">
 <meta property="og:title" content="JVM内部是如何运行的">
 <meta property="og:url" content="http://example.com/2023/04/11/knowledge/java/jvm/index.html">
 <meta property="og:site_name" content="wangjie_fourth">
-<meta property="og:description" content="在此写一下我理解中的JVM是啥样子的，一是为了更好理解jvm的执行过程，二是为了以后可能会被问到问题做准备。博客内容大致分为：  背景提要 JVM的基本结构 字节码执行引擎的执行过程 类加载与双亲委派模型">
+<meta property="og:description" content="在此写一下我理解中的JVM是啥样子的，一是为了更好理解jvm的执行过程，二是为了以后可能会被问到问题做准备。博客内容大致分为：  背景提要 JVM的基本结构 字节码执行引擎的执行过程 class文件结构   类加载与双亲委派模型">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/images/jvm/jvm_structure.png">
 <meta property="og:image" content="http://example.com/images/jvm/classLoading.png">
@@ -33,7 +33,7 @@
 <meta property="og:image" content="http://example.com/images/jvm/class_loader.png">
 <meta property="og:image" content="http://example.com/images/jvm/class_loading.png">
 <meta property="article:published_time" content="2023-04-11T13:12:12.000Z">
-<meta property="article:modified_time" content="2023-05-03T15:52:49.696Z">
+<meta property="article:modified_time" content="2023-05-05T15:11:50.381Z">
 <meta property="article:author" content="wangjie_fourth">
 <meta property="article:tag" content="JVM">
 <meta name="twitter:card" content="summary">
@@ -203,7 +203,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-05-03 23:52:49" itemprop="dateModified" datetime="2023-05-03T23:52:49+08:00">2023-05-03</time>
+                <time title="修改时间：2023-05-05 23:11:50" itemprop="dateModified" datetime="2023-05-05T23:11:50+08:00">2023-05-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -244,12 +244,15 @@
 <ul>
 <li>背景提要</li>
 <li>JVM的基本结构</li>
-<li>字节码执行引擎的执行过程</li>
+<li>字节码执行引擎的执行过程<ul>
+<li>class文件结构</li>
+</ul>
+</li>
 <li>类加载与双亲委派模型</li>
 </ul>
 <span id="more"></span>
 
-<h1 id="背景提要"><a href="#背景提要" class="headerlink" title="背景提要"></a>背景提要</h1><p>在开始具体写之前，先明确一下我以前长时间被迷惑的概念。<br>（1）虚拟机规范名称与实际实现名称可能不同<br>这里主要说的是堆的元空间、永久代、方法区。要明白方法区是虚拟机规范中的概念，而元空间、永久代是不同虚拟机对其实现的名称。</p>
+<h1 id="背景提要"><a href="#背景提要" class="headerlink" title="背景提要"></a>背景提要</h1><p>在开始具体写之前，先明确一下我以前长时间被迷惑的概念。<br>（1）虚拟机规范名称与实际实现名称可能不同<br>这里主要说的是堆的元空间、永久代、方法区。要明白方法区是虚拟机规范中的概念，而元空间、永久代是不同虚拟机对其实现的名称。所以网上会出现这三个混着表述，要明白这其实说的是同一个东西。</p>
 <h1 id="JVM的基本结构"><a href="#JVM的基本结构" class="headerlink" title="JVM的基本结构"></a>JVM的基本结构</h1><p><img src="/images/jvm/jvm_structure.png"></p>
 <blockquote>
 <p>以下内容是参考java虚拟机规范的2.5、2.6节和网上其他信息汇总。</p>
@@ -265,12 +268,11 @@
 <li>线程执行新的方法代码时，PC Register会指向新方法内部的字节码指令位置</li>
 <li>等新方法执行完成后，栈帧销毁，PC Register就会重新指回原来执行字节码指令的位置</li>
 </ul>
-<p>2、stack<br>栈帧。是线程每次进入一个方法后，都创建的一个对象。其内部组成部分有：</p>
+<p>2、Stack Frame<br>栈帧。是线程每次进入一个方法后，都创建的一个对象。其内部组成部分有：</p>
 <ul>
 <li>局部变量表：存储方法用需要用到的局部变量信息，比如：this</li>
 <li>操作数栈：用于存储后面计算所需要的变量和符号</li>
 </ul>
-<p>外部引用对象为什么是final的？</p>
 <p>3、Native Method Stack<br>指的是一些Native方法栈。完全不懂，找时间看看内部实现，不过估计得学一学C++了。（又是一个不知道什么时候能完成的坑）</p>
 <h3 id="实际展示"><a href="#实际展示" class="headerlink" title="实际展示"></a>实际展示</h3><p>启动一个Java程序后，执行jps，jstack。线程中死锁的一些信息怎么判断出来？</p>
 <figure class="highlight shell"><figcaption><span>script</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&quot;main&quot; #1 prio=5 os_prio=31 cpu=319.81ms elapsed=757.78s tid=0x00007f9a0d00f000 nid=0x1703 in Object.wait()  [0x000070000b725000]</span><br><span class="line">   java.lang.Thread.State: TIMED_WAITING (on object monitor)</span><br><span class="line">	at java.lang.Object.wait(java.base@17.0.1/Native Method)</span><br><span class="line">	- waiting on &lt;0x00000007d014b000&gt; (a java.lang.Object)</span><br><span class="line">	at com.intellij.execution.rmi.RemoteServer.spinUntilWatchdogAlive(RemoteServer.java:124)</span><br><span class="line">	- locked &lt;0x00000007d014b000&gt; (a java.lang.Object)</span><br><span class="line">	at com.intellij.execution.rmi.RemoteServer.start(RemoteServer.java:110)</span><br><span class="line">	at org.jetbrains.idea.maven.server.RemoteMavenServer36.main(RemoteMavenServer36.java:23)</span><br><span class="line"></span><br><span class="line">&quot;Reference Handler&quot; #2 daemon prio=10 os_prio=31 cpu=0.74ms elapsed=757.66s tid=0x00007f9a0d808600 nid=0x3a03 waiting on condition  [0x000070000be3a000]</span><br><span class="line">   java.lang.Thread.State: RUNNABLE</span><br><span class="line">	at java.lang.ref.Reference.waitForReferencePendingList(java.base@17.0.1/Native Method)</span><br><span class="line">	at java.lang.ref.Reference.processPendingReferences(java.base@17.0.1/Reference.java:253)</span><br><span class="line">	at java.lang.ref.Reference$ReferenceHandler.run(java.base@17.0.1/Reference.java:215)</span><br><span class="line"></span><br><span class="line">// 表示native的方法栈</span><br><span class="line">&quot;GC Thread#0&quot; os_prio=31 cpu=14.03ms elapsed=757.74s tid=0x00007f9a0b106ee0 nid=0x4d03 runnable</span><br></pre></td></tr></table></figure>
@@ -286,8 +288,8 @@
 <li>永久代是Java7之前实现方法区的名称，且其是作为堆的一部分</li>
 <li>元空间是Java8之后实现方法区的名称，是作为堆外内存的一部分</li>
 </ul>
-<h1 id="字节码执行引擎的执行过程"><a href="#字节码执行引擎的执行过程" class="headerlink" title="字节码执行引擎的执行过程"></a>字节码执行引擎的执行过程</h1><p>在说具体字节码执行引擎的工作流程之前，先说说java代码是如何变成字节码的。在你写完java代码，点击构建的时候，javac命令会把每个java文件转换成一个符合当前版本语法要求的BST，如果转换失败，那就会提示编译失败。如果编译成功，就会遍历这颗BST，然后按照规则写.class文件。至此，字节码文件就生成好了。<br>然后在jvm运行时，发现一个class还没有被加载，此时就会触发类加载流程。jvm会在cp里面不断遍历的去找全限定名称一致的class文件，找到后就会通过classLoader将class文件转换字节码存储到方法区，字节码执行引擎需要执行该class的字节码指令时，就会去方法区找到该字节码来解释执行，生成符合当前平台要求的机器码，最后cpu才会按照这些机器码执行指令。<br><img src="/images/jvm/classLoading.png"><br>至此，就是大概的java代码编写到实际运行的过程。接下来主要是看class文件存储的内容是啥，一个class是如何被加载到jvm中，然后再紧接看一个例子。</p>
-<h2 id="class文件结构"><a href="#class文件结构" class="headerlink" title="class文件结构"></a>class文件结构</h2><p>从编译器的角度来看，一个java文件就是一个编译单元，就比如说：一个java文件有多个类，而这些类会各自生成一个class文件，就会各自对应一个编译单元。<br>1、文件结构<br><img src="/images/jvm/class_file_structure.png"></p>
+<h1 id="字节码执行引擎的执行过程"><a href="#字节码执行引擎的执行过程" class="headerlink" title="字节码执行引擎的执行过程"></a>字节码执行引擎的执行过程</h1><p>在说具体字节码执行引擎的工作流程之前，先说说java代码是如何变成字节码的。在你写完java代码，点击构建的时候，javac命令会把每个java文件中每个class转换成一个符合当前版本语法要求的BST，如果转换失败，那就会提示编译失败。如果编译成功，就会遍历这颗BST，然后按照规则写.class文件。至此，字节码文件就生成好了。<br>然后在jvm运行时，发现一个class还没有被加载，此时就会触发类加载流程。jvm会在cp里面不断遍历的去找全限定名称一致的class文件，找到后就会通过classLoader将class文件转换字节码存储到方法区，字节码执行引擎需要执行该class的字节码指令时，就会去方法区找到该字节码来解释执行，生成符合当前平台要求的机器码，最后cpu才会按照这些机器码执行指令。<br><img src="/images/jvm/classLoading.png"><br>至此，就是大概的java代码编写到实际运行的过程。接下来主要是看class文件存储的内容是啥，一个class是如何被加载到jvm中，然后再紧接看一个例子。</p>
+<h2 id="class文件结构"><a href="#class文件结构" class="headerlink" title="class文件结构"></a>class文件结构</h2><p>从编译器的角度来看，一个类就是一个编译单元，就比如说：一个java文件有多个类，而这些类会各自生成一个class文件，就会各自对应一个编译单元。<br>1、文件结构<br><img src="/images/jvm/class_file_structure.png"></p>
 <ul>
 <li>magic：一般特殊文件都有这个标识</li>
 <li>minor_version：当前jdk的小版本</li>
