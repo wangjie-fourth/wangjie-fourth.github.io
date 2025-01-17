@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="使用.zip在Windows系统安装ElasticsearchElasticsearch可以用的Windows的.zip归档文件来安装。归档文件中的elasticsearch-service.bat会将Elasticsearch作为一个服务运行起来。 文件即包含免费、订阅的功能。可以通过30天免费使用来尝试所有的功能。  Windows上的Elasticsearch的机器学习特性需要Microso">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在windows中安装Elasticsearch">
+<meta property="og:url" content="http://example.com/2020/01/01/elasticSearchDoc/02-01-02_install_ElasticSearch_with_zip_on_windows/index.html">
+<meta property="og:site_name" content="wangjie_fourth">
+<meta property="og:description" content="使用.zip在Windows系统安装ElasticsearchElasticsearch可以用的Windows的.zip归档文件来安装。归档文件中的elasticsearch-service.bat会将Elasticsearch作为一个服务运行起来。 文件即包含免费、订阅的功能。可以通过30天免费使用来尝试所有的功能。  Windows上的Elasticsearch的机器学习特性需要Microso">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-12-31T17:01:04.000Z">
+<meta property="article:modified_time" content="2025-01-17T13:51:37.566Z">
+<meta property="article:author" content="wangjie_fourth">
+<meta property="article:tag" content="翻译">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2020/01/01/elasticSearchDoc/02-01-02_install_ElasticSearch_with_zip_on_windows/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>在windows中安装Elasticsearch | wangjie_fourth</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">wangjie_fourth</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">may the force be with you</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/01/01/elasticSearchDoc/02-01-02_install_ElasticSearch_with_zip_on_windows/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wangjie_fourth">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="wangjie_fourth">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          在windows中安装Elasticsearch
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-01-01 01:01:04" itemprop="dateCreated datePublished" datetime="2020-01-01T01:01:04+08:00">2020-01-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-01-17 21:51:37" itemprop="dateModified" datetime="2025-01-17T21:51:37+08:00">2025-01-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Elasticsearch/" itemprop="url" rel="index"><span itemprop="name">Elasticsearch</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5.9k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="使用-zip在Windows系统安装Elasticsearch"><a href="#使用-zip在Windows系统安装Elasticsearch" class="headerlink" title="使用.zip在Windows系统安装Elasticsearch"></a>使用.zip在Windows系统安装Elasticsearch</h1><p>Elasticsearch可以用的Windows的.zip归档文件来安装。归档文件中的elasticsearch-service.bat会将Elasticsearch作为一个服务运行起来。</p>
+<p>文件即包含免费、订阅的功能。可以通过<a target="_blank" rel="noopener" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/license-settings.html">30天免费</a>使用来尝试所有的功能。</p>
+<blockquote>
+<p>Windows上的Elasticsearch的机器学习特性需要Microsoft Universal C Runtime library。这个包内嵌于Windows10、Windows Server 2016和一些最近版本的Windows系统。对于一些老版本的Windows系统，可以通过升级Windows系统或者<a target="_blank" rel="noopener" href="https://support.microsoft.com/en-us/topic/update-for-universal-c-runtime-in-windows-c0514201-7fe6-95a3-b0a5-287930f3560c">单独下载</a>来安装这个包。如果你不想使用机器学习这个功能，就可以不安装这个包，并且还可以使用Elasticsearch的其他功能。</p>
+</blockquote>
+<p>可以通过这个<a target="_blank" rel="noopener" href="https://www.elastic.co/cn/downloads/elasticsearch">Elasticsearch下载页面</a>来获取最新稳定版本的Elasticsearch。Elasticsearch的其他版本可以通过<a target="_blank" rel="noopener" href="https://www.elastic.co/downloads/past-releases">历史发布页面</a>获取。</p>
+<blockquote>
+<p>Elasticsearch包含JDK维护团队的绑定版本的OpenJDK。如果想使用指定版本的Java，请参考<a target="_blank" rel="noopener" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html#jvm-version">JVM版本要求</a>。</p>
+</blockquote>
+<span id="more"></span>
+
+<h2 id="下载并安装-zip文件包"><a href="#下载并安装-zip文件包" class="headerlink" title="下载并安装.zip文件包"></a>下载并安装.zip文件包</h2><p>可以通过这个链接，下载Elasticsearch8.6.0的安装包。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-8.6.0-windows-x86_64.zip</span><br></pre></td></tr></table></figure>
+<p>用你喜欢解压工具来解压它。然后会创建一个叫<code>elasticsearch-8.6.0</code>文件夹，我们会将这个文件夹认为是<code>ES_HOME</code>。在windows的命令行下，进入<code>ES_HOME</code>文件夹下，比如：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cd C:\elasticsearch-8.6.0</span><br></pre></td></tr></table></figure>
+
+<h2 id="允许自动创建系统索引"><a href="#允许自动创建系统索引" class="headerlink" title="允许自动创建系统索引"></a>允许自动创建系统索引</h2><p>一些商业化版本的Elasticsearch会自动创建索引。默认情况下，Elasticsearch是通过配置来允许自动创建索引，不需要其他步骤。然而，如果你禁用了自动创建索引，你就必须在elasticsearch.yml中配置<a target="_blank" rel="noopener" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-index_.html#index-creation">action.auto_create_index</a>来允许商业特性来创建下列索引：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">action.auto_create_index: .monitoring*,.watches,.triggered_watches,.watcher-history*,.ml*</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注意：如果你使用Logstash或者Beats，那你可能还需要在action.auto_create_index配置中添加一些额外的索引名称，具体的索引名称是取决于你本地的配置。如果你不确定的话，你可以尝试配置成×来允许所有索引的自动创建。</p>
+</blockquote>
+<h2 id="通过命令行来运行Elasticsearch"><a href="#通过命令行来运行Elasticsearch" class="headerlink" title="通过命令行来运行Elasticsearch"></a>通过命令行来运行Elasticsearch</h2><p>在命令行中，运行下列命令来启动Elasticsearch：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.\bin\elasticsearch.bat</span><br></pre></td></tr></table></figure>
+<p>当Elasticsearch第一次运行时，安全特性将会被默认启用和配置。下列安全配置将会自动发生：</p>
+<ul>
+<li>开启认证授权，密码是由内置的超级管理员的elastic生成；</li>
+<li>为传输层和HTTP层生成TLS的证书和密钥，并使用这些密钥和证书启用和配置TLS；</li>
+<li>为Kibana生成一个注册令牌，有效期为30分钟；</li>
+</ul>
+<p>elastic的密码和Kibana的注册令盘会被输出到你的命令行。比如：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">The generated password for the elastic built-in superuser is:</span><br><span class="line">&lt;password&gt;</span><br><span class="line"></span><br><span class="line">The enrollment token for Kibana instances, valid for the next 30 minutes:</span><br><span class="line">&lt;enrollment-token&gt;</span><br><span class="line"></span><br><span class="line">The hex-encoded SHA-256 fingerprint of the generated HTTPS CA DER-encoded certificate:</span><br><span class="line">&lt;fingerprint&gt;</span><br><span class="line"></span><br><span class="line">You can complete the following actions at any time:</span><br><span class="line">Reset the password of the elastic built-in superuser with</span><br><span class="line">&#x27;bin\elasticsearch-reset-password -u elastic&#x27;.</span><br><span class="line"></span><br><span class="line">Generate an enrollment token for Kibana instances with</span><br><span class="line">&#x27;bin\elasticsearch-create-enrollment-token -s kibana&#x27;.</span><br><span class="line"></span><br><span class="line">Generate an enrollment token for Elasticsearch nodes with</span><br><span class="line">&#x27;bin\elasticsearch-create-enrollment-token -s node&#x27;.</span><br></pre></td></tr></table></figure>
+<p>如果你在Elasticsearch密码库使用了密码保护，你将会被提示输出密码库的密码。通过<a target="_blank" rel="noopener" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/secure-settings.html">安全配置</a>来获取更多信息。</p>
+<p>默认情况下，Elasticsearch将日志输出的控制台和<a target="_blank" rel="noopener" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/important-settings.html#path-settings">日志文件夹</a>的<code>&lt;clustername&gt;.log</code>文件。Elasticsearch会在启动的时候，记录一些信息；但在它完成初始化之后，它将继续在前台运行，直到发生值得记录的事情之前，它不会继续记录任何内容。在Elasticsearch运行的时候，你可以通过HTTP来与它进行交互，默认端口是9200。</p>
+<p>按<code>Ctrl+C</code>来停止Elasticsearch。</p>
+<h2 id="在现有的集群注册节点"><a href="#在现有的集群注册节点" class="headerlink" title="在现有的集群注册节点"></a>在现有的集群注册节点</h2><p>当Elasticsearch第一次启动的时候，安全将自动配置将HTTP层绑定到0.0.0.0，但只将传输层绑定到本机。这种默认行为将保证在不需要任何配置的情况下，你也可以在单节点集群里使用安全功能。</p>
+<p>在生产环境下， 注册新节点之前，还需要做一些额外操作。比如：绑定到特定的地址而不是localhost、完成一些初始化检查。在这段时间内，自动生产的准入令牌会过期，这就是为什么准入令牌不能自动生成。</p>
+<p>此外，只有在同一个主机的节点才可以在不需要任何配置的情况下，加入集群。如果你想把其他主机上的结点加入到你的集群，你需要设置transport.host为<a target="_blank" rel="noopener" href="https://www.elastic.co/guide/en/elasticsearch/reference/8.6/modules-network.html#network-interface-values">支持的值</a>（比如上面提高的0.0.0.0），或者是集群可以访问的其他ip地址。额外信息请参考<a target="_blank" rel="noopener" href="https://www.elastic.co/guide/en/elasticsearch/reference/8.6/modules-network.html#transport-settings">交换设置</a>。</p>
+<p>为了把新结点加入到你的集群，你需要在集群的任意一个节点通过<code>elasticsearch-create-enrollment-token</code>工具来获取准入令牌。然后你就可以使用<code>--enrollment-token</code>将新节点加入到集群里。</p>
+<p>1、在一个新的终端下，进入到你安装Elasticsearch的目录下，然后运行<a target="_blank" rel="noopener" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/create-enrollment-token.html">elasticsearch-create-enrollment-token</a>工具来生成一个准入令牌：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bin\elasticsearch-create-enrollment-token -s node</span><br></pre></td></tr></table></figure>
+<p>复制准入令牌，这会在把新节点加入到Elasticsearch集群中用到。<br>2、在新节点的安装目录下，通过<code>--enrollment-token</code>参数传入准入令牌，来启动Elasticsearch：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bin\elasticsearch --enrollment-token &lt;enrollment-token&gt;</span><br></pre></td></tr></table></figure>
+<p>Elasticsearch将会在下列文件夹下自动生成证书和密钥：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">config\certs</span><br></pre></td></tr></table></figure>
+<p>3、重复上述步骤，可以把任何新节点加入到集群</p>
+<h1 id="在命令行下配置Elasticsearch"><a href="#在命令行下配置Elasticsearch" class="headerlink" title="在命令行下配置Elasticsearch"></a>在命令行下配置Elasticsearch</h1><p>默认情况下，Elasticsearch从<code>%ES_HOME%\config\elasticsearch.yml</code>文件加载配置信息。配置文件的格式信息解释在<a target="_blank" rel="noopener" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/settings.html">配置Elasticsearch</a>。</p>
+<p>配置文件的任何配置都可以通过命令行来指定，像下面一样使用<code>-E</code>来配置：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.\bin\elasticsearch.bat -Ecluster.name=my_cluster -Enode.name=node_1</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>note：包含空格的配置值必须要使用双引号包起来。比如：<code>-Epath.logs=&quot;C:\My Logs\logs&quot;</code><br>tips：通常情况下，任何集群级别的配置（比如cluster.name）都应该在elasticsearch.yml上配置，而任何节点级别的配置（比如node.name）可以在命令行上指定</p>
+</blockquote>
+<h1 id="检查Elasticsearch是否在运行"><a href="#检查Elasticsearch是否在运行" class="headerlink" title="检查Elasticsearch是否在运行"></a>检查Elasticsearch是否在运行</h1><p>你可以在你的Elasticsearch节点上通过发送HTTPS请求到本地的9200端口，来测试Elasticsearch是否在运行：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl --cacert %ES_HOME%\config\certs\http_ca.crt -u elastic https://localhost:9200 </span><br></pre></td></tr></table></figure>
+<p>1、确保在你的调用中使用https，否则请求会失败。<br><code>--cacert</code>：HTTP层面生成的http_ca.crt文件的路径。</p>
+<p>输入在安装时生成的elastic用户的密码，返回的响应应该类似如下：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;name&quot;</span> <span class="punctuation">:</span> <span class="string">&quot;Cp8oag6&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;cluster_name&quot;</span> <span class="punctuation">:</span> <span class="string">&quot;elasticsearch&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;cluster_uuid&quot;</span> <span class="punctuation">:</span> <span class="string">&quot;AT69_T_DTp-1qgIJlatQqA&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;version&quot;</span> <span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;number&quot;</span> <span class="punctuation">:</span> <span class="string">&quot;8.6.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;build_type&quot;</span> <span class="punctuation">:</span> <span class="string">&quot;tar&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;build_hash&quot;</span> <span class="punctuation">:</span> <span class="string">&quot;f27399d&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;build_flavor&quot;</span> <span class="punctuation">:</span> <span class="string">&quot;default&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;build_date&quot;</span> <span class="punctuation">:</span> <span class="string">&quot;2016-03-30T09:51:41.449Z&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;build_snapshot&quot;</span> <span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;lucene_version&quot;</span> <span class="punctuation">:</span> <span class="string">&quot;9.4.2&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;minimum_wire_compatibility_version&quot;</span> <span class="punctuation">:</span> <span class="string">&quot;1.2.3&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;minimum_index_compatibility_version&quot;</span> <span class="punctuation">:</span> <span class="string">&quot;1.2.3&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;tagline&quot;</span> <span class="punctuation">:</span> <span class="string">&quot;You Know, for Search&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="在Windows下，通过服务安装、运行Elasticsearch"><a href="#在Windows下，通过服务安装、运行Elasticsearch" class="headerlink" title="在Windows下，通过服务安装、运行Elasticsearch"></a>在Windows下，通过服务安装、运行Elasticsearch</h1><p>你可以把Elasticsearch安装做成一个服务，这样你可以在后台运行，并且在重启后不需要用户交互的情况下，就会重启。<br>1、安装Elasticsearch服务。服务的名称和<code>ES_JAVA_HOME</code>可以在安装时获取：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">C:\elasticsearch-8.6.0\bin&gt;elasticsearch-service.bat install</span><br><span class="line">Installing service      :  &quot;elasticsearch-service-x64&quot;</span><br><span class="line">Using ES_JAVA_HOME (64-bit):  &quot;C:\jvm\jdk1.8&quot;</span><br><span class="line">The service &#x27;elasticsearch-service-x64&#x27; has been installed.</span><br></pre></td></tr></table></figure>
+<p>2、启动Elasticsearch服务。当Elasticsearch服务启动时，默认情况下，安全校验会启用：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">C:\elasticsearch-8.6.0\bin&gt;bin\elasticsearch-service.bat start</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>note：当你把Elasticsearch启用做成服务时，TLS不会被启用。</p>
+</blockquote>
+<p>3、使用<a target="_blank" rel="noopener" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/reset-password.html">elasticsearch-reset-password</a>来为elastic用户生成密码。密码将会被输出到下面命令行：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">C:\elasticsearch-8.6.0\bin&gt;\bin\elasticsearch-reset-password -u elastic</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>note: 尽量Elasticsearch服务也可以使用JRE，但是因为这是客户端的VM（而不是那些为了长期运行服务端、可以提供更好性能的JVM），因此并不建议使用JRE。<br>note：系统环境变量<code>ES_JAVA_HOME</code>应该被设置成服务想使用的JDK安装位置。如果你升级JDK，还不想重新安装Elasticsearch服务，那你就必须将系统环境变量<code>ES_JAVA_HOME</code>设置成新JDK安装的位置。然而，跨JVM类型的安装是不支持的，并且还需要在JDK安装后，重新安装Elasticsearch服务。</p>
+</blockquote>
+<h2 id="在Windows上，像服务一样管理Elasticsearch"><a href="#在Windows上，像服务一样管理Elasticsearch" class="headerlink" title="在Windows上，像服务一样管理Elasticsearch"></a>在Windows上，像服务一样管理Elasticsearch</h2><p>在<code>bin</code>文件夹下，在命令行下运行<code>elasticsearch-service.bat</code>脚本来安装、删除、管理、配置、开启、关闭服务。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">C:\elasticsearch-8.6.0\bin&gt;elasticsearch-service.bat</span><br><span class="line"></span><br><span class="line">Usage: elasticsearch-service.bat install|remove|start|stop|manager [SERVICE_ID]</span><br></pre></td></tr></table></figure>
+<p>在命令行执行时，脚本需要一个参数，在可选参数之后、表示该服务的id。（在安装多个Elasticsearch服务特别有用）</p>
+<p>可使用的命令如下：</p>
+<ul>
+<li>install：安装Elasticsearch的服务</li>
+<li>remove：卸载安装的Elasticsearch服务。（在服务运行时，就会停止服务）</li>
+<li>start：启动Elasticsearch服务（如果已经安装的话）</li>
+<li>stop：停止Elasticsearch服务（如果已经运行的话）</li>
+<li>manager：开启一个用于管理已安装服务的GUI界面</li>
+</ul>
+<hr>
+<p><a target="_blank" rel="noopener" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/zip-windows.html">https://www.elastic.co/guide/en/elasticsearch/reference/current/zip-windows.html</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%BF%BB%E8%AF%91/" rel="tag"># 翻译</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/01/01/elasticSearchDoc/02-01-00_Installing_Elasticsearch/" rel="prev" title="Elasticsearch安装">
+      <i class="fa fa-chevron-left"></i> Elasticsearch安装
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/03/10/experience/linuxSoftware/" rel="next" title="Linux简单软件安装">
+      Linux简单软件安装 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8-zip%E5%9C%A8Windows%E7%B3%BB%E7%BB%9F%E5%AE%89%E8%A3%85Elasticsearch"><span class="nav-number">1.</span> <span class="nav-text">使用.zip在Windows系统安装Elasticsearch</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8B%E8%BD%BD%E5%B9%B6%E5%AE%89%E8%A3%85-zip%E6%96%87%E4%BB%B6%E5%8C%85"><span class="nav-number">1.1.</span> <span class="nav-text">下载并安装.zip文件包</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%81%E8%AE%B8%E8%87%AA%E5%8A%A8%E5%88%9B%E5%BB%BA%E7%B3%BB%E7%BB%9F%E7%B4%A2%E5%BC%95"><span class="nav-number">1.2.</span> <span class="nav-text">允许自动创建系统索引</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%9A%E8%BF%87%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%9D%A5%E8%BF%90%E8%A1%8CElasticsearch"><span class="nav-number">1.3.</span> <span class="nav-text">通过命令行来运行Elasticsearch</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9C%A8%E7%8E%B0%E6%9C%89%E7%9A%84%E9%9B%86%E7%BE%A4%E6%B3%A8%E5%86%8C%E8%8A%82%E7%82%B9"><span class="nav-number">1.4.</span> <span class="nav-text">在现有的集群注册节点</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9C%A8%E5%91%BD%E4%BB%A4%E8%A1%8C%E4%B8%8B%E9%85%8D%E7%BD%AEElasticsearch"><span class="nav-number">2.</span> <span class="nav-text">在命令行下配置Elasticsearch</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A3%80%E6%9F%A5Elasticsearch%E6%98%AF%E5%90%A6%E5%9C%A8%E8%BF%90%E8%A1%8C"><span class="nav-number">3.</span> <span class="nav-text">检查Elasticsearch是否在运行</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9C%A8Windows%E4%B8%8B%EF%BC%8C%E9%80%9A%E8%BF%87%E6%9C%8D%E5%8A%A1%E5%AE%89%E8%A3%85%E3%80%81%E8%BF%90%E8%A1%8CElasticsearch"><span class="nav-number">4.</span> <span class="nav-text">在Windows下，通过服务安装、运行Elasticsearch</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9C%A8Windows%E4%B8%8A%EF%BC%8C%E5%83%8F%E6%9C%8D%E5%8A%A1%E4%B8%80%E6%A0%B7%E7%AE%A1%E7%90%86Elasticsearch"><span class="nav-number">4.1.</span> <span class="nav-text">在Windows上，像服务一样管理Elasticsearch</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">wangjie_fourth</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">47</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wangjie_fourth</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">146k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:12</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

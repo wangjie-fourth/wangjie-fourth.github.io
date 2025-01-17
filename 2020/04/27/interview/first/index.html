@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="线程安全问题1、问题描述为什么java有多线程安全问题？JavaScript、Redis却没有线程安全问题？">
+<meta property="og:type" content="article">
+<meta property="og:title" content="记录一次电话面试">
+<meta property="og:url" content="http://example.com/2020/04/27/interview/first/index.html">
+<meta property="og:site_name" content="wangjie_fourth">
+<meta property="og:description" content="线程安全问题1、问题描述为什么java有多线程安全问题？JavaScript、Redis却没有线程安全问题？">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/thread_pool_work_flow.png">
+<meta property="article:published_time" content="2020-04-27T01:41:00.000Z">
+<meta property="article:modified_time" content="2025-01-17T13:51:37.569Z">
+<meta property="article:author" content="wangjie_fourth">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/thread_pool_work_flow.png">
+
+<link rel="canonical" href="http://example.com/2020/04/27/interview/first/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>记录一次电话面试 | wangjie_fourth</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">wangjie_fourth</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">may the force be with you</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/04/27/interview/first/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wangjie_fourth">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="wangjie_fourth">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          记录一次电话面试
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-04-27 09:41:00" itemprop="dateCreated datePublished" datetime="2020-04-27T09:41:00+08:00">2020-04-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-01-17 21:51:37" itemprop="dateModified" datetime="2025-01-17T21:51:37+08:00">2025-01-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%9D%A2%E8%AF%95/" itemprop="url" rel="index"><span itemprop="name">面试</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="线程安全问题"><a href="#线程安全问题" class="headerlink" title="线程安全问题"></a>线程安全问题</h1><p>1、问题描述<br>为什么<code>java</code>有多线程安全问题？<code>JavaScript</code>、<code>Redis</code>却没有线程安全问题？</p>
+<span id="more"></span>
+
+<p>2、我的回答<br>因为<code>java</code>中允许多个线程可以共同操作某个对象。<br>在线程模型中，多个线程可以操作共享对象，假设一个线程<code>A</code>将共享对象从<code>1</code>变成<code>2</code>，而另一个线程在操作共享对象时，还认为共享对象是<code>1</code>，这样就可能带来程序错误。</p>
+<p>3、对方的回答<br>他对我的回答还是不满意，告诉我是因为<code>cpu</code>中间有缓存。<br>这样我意识到每个线程在操作共享对象时，可能操作的是<code>cpu</code>中的缓存对象，而不是堆中的对象。这样一个线程修改<code>cpu</code>中缓存对象，没有及时的刷新到堆中；另一个线程也是在操作<code>cpu</code>中缓存对象，也不是操作堆中对象。</p>
+<h1 id="线程池相关"><a href="#线程池相关" class="headerlink" title="线程池相关"></a>线程池相关</h1><p>1、问题描述<br>假设线程池最大线程数为4，核心线程数为2，任务队列为3；假设第3个线程进来的时候，前俩个线程任务都没有完成。此时，新进来的第三个任务时，线程池会发生什么？</p>
+<p>2、问题分析<br>其实这道题目就在问线程池的工作流程。我回答的很不对，他就立马问我在项目中是否用到线程池过。</p>
+<blockquote>
+<p>唉，用是用过，但自己没思考那么仔细</p>
+</blockquote>
+<p>3、问题答案</p>
+<ul>
+<li>第一个任务直接创建新线程执行；</li>
+<li>第二个任务也是直接创建新线程执行；</li>
+<li>第三个任务是放在队列中，等到前俩个任务线程完成后才去执行</li>
+</ul>
+<p>（1）总结一下线程池的工作流程：当一个任务提交的时候</p>
+<ul>
+<li>如果线程池中线程数小于核心线程数，就会创建一个线程来执行任务；</li>
+<li>如果线程池中线程数等于、大于核心线程数，就会把这个任务放在任务队列中；</li>
+<li>如果任务队列已经满了的话，就执行拒绝策略<br><img src="/images/thread_pool_work_flow.png"></li>
+</ul>
+<p>（2）从源码上分析：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 以：ThreadPoolExecutor poolExecutor = new ThreadPoolExecutor(2,4,20,SECONDS,new ArrayBlockingQueue&lt;&gt;(3));为例  </span></span><br><span class="line"><span class="comment">// 核心过程是在 ThreadPoolExecutor的execute方法  </span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Executes the given task sometime in the future.  The task</span></span><br><span class="line"><span class="comment">     * may execute in a new thread or in an existing pooled thread.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * If the task cannot be submitted for execution, either because this</span></span><br><span class="line"><span class="comment">     * executor has been shutdown or because its capacity has been reached,</span></span><br><span class="line"><span class="comment">     * the task is handled by the current &#123;<span class="doctag">@code</span> RejectedExecutionHandler&#125;.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> command the task to execute</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> RejectedExecutionException at discretion of</span></span><br><span class="line"><span class="comment">     *         &#123;<span class="doctag">@code</span> RejectedExecutionHandler&#125;, if the task</span></span><br><span class="line"><span class="comment">     *         cannot be accepted for execution</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> NullPointerException if &#123;<span class="doctag">@code</span> command&#125; is null</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">execute</span><span class="params">(Runnable command)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (command == <span class="literal">null</span>)</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">NullPointerException</span>();</span><br><span class="line">        <span class="comment">/*</span></span><br><span class="line"><span class="comment">         * Proceed in 3 steps:</span></span><br><span class="line"><span class="comment">         *</span></span><br><span class="line"><span class="comment">         * 1. If fewer than corePoolSize threads are running, try to</span></span><br><span class="line"><span class="comment">         * start a new thread with the given command as its first</span></span><br><span class="line"><span class="comment">         * task.  The call to addWorker atomically checks runState and</span></span><br><span class="line"><span class="comment">         * workerCount, and so prevents false alarms that would add</span></span><br><span class="line"><span class="comment">         * threads when it shouldn&#x27;t, by returning false.</span></span><br><span class="line"><span class="comment">         *</span></span><br><span class="line"><span class="comment">         * 2. If a task can be successfully queued, then we still need</span></span><br><span class="line"><span class="comment">         * to double-check whether we should have added a thread</span></span><br><span class="line"><span class="comment">         * (because existing ones died since last checking) or that</span></span><br><span class="line"><span class="comment">         * the pool shut down since entry into this method. So we</span></span><br><span class="line"><span class="comment">         * recheck state and if necessary roll back the enqueuing if</span></span><br><span class="line"><span class="comment">         * stopped, or start a new thread if there are none.</span></span><br><span class="line"><span class="comment">         *</span></span><br><span class="line"><span class="comment">         * 3. If we cannot queue task, then we try to add a new</span></span><br><span class="line"><span class="comment">         * thread.  If it fails, we know we are shut down or saturated</span></span><br><span class="line"><span class="comment">         * and so reject the task.</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">c</span> <span class="operator">=</span> ctl.get();</span><br><span class="line">        <span class="comment">// 如果线程池数 &lt; 核心线程数</span></span><br><span class="line">        <span class="keyword">if</span> (workerCountOf(c) &lt; corePoolSize) &#123;</span><br><span class="line">            <span class="keyword">if</span> (addWorker(command, <span class="literal">true</span>))</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            c = ctl.get();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 如果线程池数 &gt;= 核心线程数：</span></span><br><span class="line">        <span class="keyword">if</span> (isRunning(c) &amp;&amp; workQueue.offer(command)) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">recheck</span> <span class="operator">=</span> ctl.get();</span><br><span class="line">            <span class="keyword">if</span> (! isRunning(recheck) &amp;&amp; remove(command))</span><br><span class="line">                reject(command);</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (workerCountOf(recheck) == <span class="number">0</span>)</span><br><span class="line">                addWorker(<span class="literal">null</span>, <span class="literal">false</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (!addWorker(command, <span class="literal">false</span>))</span><br><span class="line">            reject(command);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>（1）线程池数大于等于核心线程数，不一定就会放在队列中<br>这里会采用<code>double check</code>，在放入队列之前，有一个线程正好完成任务的话，就用这个线程来执行了。</p>
+<h1 id="线程安全容器"><a href="#线程安全容器" class="headerlink" title="线程安全容器"></a>线程安全容器</h1><p>1、问题描述<br><code>jdk1.8</code>的<code>ConcurrentHashMap</code>锁加在哪里？</p>
+<p>2、问题答案<br>是在每个<code>Entry</code>上加锁，也就是对<code>Entry</code>下面的链表或者红黑树加锁。<br>他又问我具体的加锁的情况：当一个线程在<code>Entry01</code>下的链表或者红黑树进行<code>put</code>操作时，其他线程如果也要这个<code>Entry01</code>的链表或者红黑树进行操作时，就会阻塞住，等待上个结束为止，他才能进行操作。</p>
+<blockquote>
+<p>其实他问我<code>ConcurrentHashMap</code>很多问题，但我刚开始一直在说<code>jdk7</code>和<code>jdk8</code>的区别。以至于后面我还问他上面问题是基于<code>jdk8</code>的把，他说现在都用<code>jdk8</code>，当然问<code>jdk8</code>。这也告诫我，除非下次别人问我<code>ConcurrentHashMap</code>在<code>jdk7</code>和<code>jdk8</code>的区别，否则我就直接说<code>jdk8</code>的情况就好了。</p>
+<p>关于上锁时机和情形，当时回答不是很好把。他说下周来公司面试之前，好好看看<code>ConcurrentHashMap</code>，到时候会好好问这个的~</p>
+</blockquote>
+<h1 id="用过哪些中间件"><a href="#用过哪些中间件" class="headerlink" title="用过哪些中间件"></a>用过哪些中间件</h1><p>问我用过哪些中间件，我说对<code>Redis</code>比较熟。他就问我用<code>Redis</code>的哪些功能，我说用它做过主从同步。<br>他就让我说说是怎么做的？我说假设开三个<code>Redis</code>实例，对其中俩个实例使用<code>slaveof</code>+主节点的<code>ip</code>+端口。然后在应用中，凡是写操作就向主节点写，凡是读操作就往从节点读。<br>他又问我<code>Redis</code>主从同步是用什么实现的？我懵了，就说不会。</p>
+<blockquote>
+<p>后来查了一下，有全量同步和增量同步俩种方式。但我觉得他意思应该不是问这个把？大佬们，求解？</p>
+</blockquote>
+<p>他问<code>Redis</code>事务有用过吗？我说看过这方面的书，但在项目上没使用过。他就没问了。</p>
+<hr>
+<h1 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h1><p>面试结束的时候，他问我有什么问题要问的？我问了：像我平常使用<code>Redis</code>的其他功能比较少，那我应该怎么学习它？</p>
+<p>他告诉我：当你在项目中使用某个技术之前，你应该已经掌握这个技术的所有功能</p>
+<p>他说很简单，如果你不全面了解这个技术的功能，你怎么知道在什么应用场景下，使用什么功能呢。比如说，先把<code>Redis</code>的功能全部都理解一遍，以后遇到实际应用问题时，你才知道选择什么功能来解决。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/04/20/experience/httpsConvert/" rel="prev" title="使用nginx转换HTTPS流量">
+      <i class="fa fa-chevron-left"></i> 使用nginx转换HTTPS流量
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/04/27/chat/2019Summary/" rel="next" title="2019年总结">
+      2019年总结 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">线程安全问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9B%B8%E5%85%B3"><span class="nav-number">2.</span> <span class="nav-text">线程池相关</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%E5%AE%B9%E5%99%A8"><span class="nav-number">3.</span> <span class="nav-text">线程安全容器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%94%A8%E8%BF%87%E5%93%AA%E4%BA%9B%E4%B8%AD%E9%97%B4%E4%BB%B6"><span class="nav-number">4.</span> <span class="nav-text">用过哪些中间件</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%B6%E4%BB%96"><span class="nav-number">5.</span> <span class="nav-text">其他</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">wangjie_fourth</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">47</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wangjie_fourth</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">146k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:12</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

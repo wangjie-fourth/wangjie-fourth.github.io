@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="MySQL事务的实现是在引擎级别上的，现在InnoDB存储引擎是支持事务的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL的事务">
+<meta property="og:url" content="http://example.com/2021/03/05/knowledge/MySQL/transaction/index.html">
+<meta property="og:site_name" content="wangjie_fourth">
+<meta property="og:description" content="MySQL事务的实现是在引擎级别上的，现在InnoDB存储引擎是支持事务的">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-03-05T14:34:18.000Z">
+<meta property="article:modified_time" content="2025-01-17T13:51:37.571Z">
+<meta property="article:author" content="wangjie_fourth">
+<meta property="article:tag" content="事务">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2021/03/05/knowledge/MySQL/transaction/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>MySQL的事务 | wangjie_fourth</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">wangjie_fourth</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">may the force be with you</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/03/05/knowledge/MySQL/transaction/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wangjie_fourth">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="wangjie_fourth">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          MySQL的事务
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-03-05 22:34:18" itemprop="dateCreated datePublished" datetime="2021-03-05T22:34:18+08:00">2021-03-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-01-17 21:51:37" itemprop="dateModified" datetime="2025-01-17T21:51:37+08:00">2025-01-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>MySQL事务的实现是在引擎级别上的，现在<code>InnoDB</code>存储引擎是支持事务的</p>
+<span id="more"></span>
+
+<h1 id="事务的ACID"><a href="#事务的ACID" class="headerlink" title="事务的ACID"></a>事务的ACID</h1><p>事务拥有四个重要的特性（<code>ACID</code>）：原子性（<code>Atomicity</code>）、一致性（<code>Consistency</code>）、隔离性（<code>Isolation</code>）、持久性（<code>Durability</code>）</p>
+<h2 id="原子性Atomicity"><a href="#原子性Atomicity" class="headerlink" title="原子性Atomicity"></a>原子性<code>Atomicity</code></h2><p>事务开始后所有操作，要么全部做完，要么全部不做，不可能停滞在中间环节。事务执行过程中出错，会回滚到事务开始前的状态，所有的操作就像没有发生一样<br>注：<code>MySQL</code>使用<code>undo log</code>来保证事务的原子性</p>
+<h2 id="一致性Consistency"><a href="#一致性Consistency" class="headerlink" title="一致性Consistency"></a>一致性<code>Consistency</code></h2><p>指事务将数据库从一种状态转变为另一种一致的的状态。事务开始前和结束后，数据库的完整性约束没有被破坏。例如工号带有唯一属性，如果经过一个修改工号的事务后，工号变的非唯一了，则表明一致性遭到了破坏。</p>
+<blockquote>
+<p>可以理解成满足数据库完整性约束</p>
+</blockquote>
+<h2 id="隔离性Isolation"><a href="#隔离性Isolation" class="headerlink" title="隔离性Isolation"></a>隔离性<code>Isolation</code></h2><p>要求每个读写事务的对象对其他事务的操作对象能互相分离，即该事务提交前对其他事务不可见。 也可以理解为多个事务并发访问时，事务之间是隔离的，一个事务不应该影响其它事务运行效果。这指的是在并发环境中，当不同的事务同时操纵相同的数据时，每个事务都有各自的完整数据空间。由并发事务所做的修改必须与任何其他并发事务所做的修改隔离。例如一个用户在更新自己的个人信息的同时，是不能看到系统管理员也在更新该用户的个人信息（此时更新事务还未提交）。<br>注：<code>MySQL</code>通过<code>MVVC</code> + 锁机制来保证事务的隔离性。</p>
+<h2 id="持久性Durability"><a href="#持久性Durability" class="headerlink" title="持久性Durability"></a>持久性<code>Durability</code></h2><p>事务一旦提交，则其结果就是永久性的。即使发生宕机的故障，数据库也能将数据恢复，也就是说事务完成后，事务对数据库的所有更新将被保存到数据库，不能回滚。这只是从事务本身的角度来保证，排除 RDBMS（关系型数据库管理系统，例如 Oracle、MySQL 等）本身发生的故障。<br>注：<code>MySQL</code>使用<code>redo log</code>来保证事务的持久性</p>
+<h1 id="事务的四种隔离级别"><a href="#事务的四种隔离级别" class="headerlink" title="事务的四种隔离级别"></a>事务的四种隔离级别</h1><table>
+<thead>
+<tr>
+<th>隔离级别</th>
+<th>脏读可能性</th>
+<th>不可重复读可能性</th>
+<th>幻读可能性</th>
+<th>加锁读</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>未提交读（Read uncommitted）</td>
+<td>可能</td>
+<td>可能</td>
+<td>可能</td>
+<td>不可能</td>
+</tr>
+<tr>
+<td>已提交读（Read committed）</td>
+<td>不可能</td>
+<td>可能</td>
+<td>可能</td>
+<td>不可能</td>
+</tr>
+<tr>
+<td>可重复读（Repeatable read）</td>
+<td>不可能</td>
+<td>不可能</td>
+<td>可能</td>
+<td>不可能</td>
+</tr>
+<tr>
+<td>可串行化（Serializable）</td>
+<td>不可能</td>
+<td>不可能</td>
+<td>不可能</td>
+<td>可能</td>
+</tr>
+</tbody></table>
+<h2 id="未提交读（Read-uncommitted）"><a href="#未提交读（Read-uncommitted）" class="headerlink" title="未提交读（Read uncommitted）"></a>未提交读（Read uncommitted）</h2><p>未提交读是指一个事务可以读取另一个事务还未提交的数据。这样就会产生脏读、也不能重复、也会产生幻读。即：</p>
+<table>
+<thead>
+<tr>
+<th>事务A</th>
+<th>事务B</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>设置事务隔离级别为READ UNCOMMITTED</td>
+<td>设置事务隔离级别为READ UNCOMMITTED</td>
+</tr>
+<tr>
+<td>开始事务A：begin;</td>
+<td></td>
+</tr>
+<tr>
+<td>insert into test values (2);</td>
+<td></td>
+</tr>
+<tr>
+<td>select * from test;</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>开始事务A：begin;</td>
+</tr>
+<tr>
+<td></td>
+<td>select * from test;&#x2F;&#x2F; 读取到2</td>
+</tr>
+</tbody></table>
+<h2 id="已提交读（Read-committed）"><a href="#已提交读（Read-committed）" class="headerlink" title="已提交读（Read committed）"></a>已提交读（Read committed）</h2><p>已提交读是指一个事务只能读取到另一个事务提交过后的数据。但是不可以重复读、也会产生幻读。即：</p>
+<table>
+<thead>
+<tr>
+<th>事务A</th>
+<th>事务B</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>设置事务隔离级别为READ COMMITTED</td>
+<td>设置事务隔离级别为READ COMMITTED</td>
+</tr>
+<tr>
+<td>开始事务A：begin;</td>
+<td></td>
+</tr>
+<tr>
+<td>insert into test values (4, ‘Leon’);</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>开始事务B：begin;</td>
+</tr>
+<tr>
+<td></td>
+<td>查询数据：select * from test; （看不到id &#x3D; 4的数据）</td>
+</tr>
+<tr>
+<td>事务 A 提交: commit;</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>再次查询数据：select * from test; （id &#x3D; 4的数据可见）</td>
+</tr>
+<tr>
+<td></td>
+<td>事务 B提交：commit;</td>
+</tr>
+</tbody></table>
+<h2 id="可重复读（Repeatable-read）：MySQL的默认事务隔离级别"><a href="#可重复读（Repeatable-read）：MySQL的默认事务隔离级别" class="headerlink" title="可重复读（Repeatable read）：MySQL的默认事务隔离级别"></a>可重复读（Repeatable read）：MySQL的默认事务隔离级别</h2><p>可重复读是指在同一事务中多次读取同样记录的结果是一致的。但这有可能产生幻读问题。</p>
+<blockquote>
+<p>幻读指的是当某个事务在读取某个范围内的记录时，另外一个事务又在该范围内插入了新记录，当之前的事务再次读取时该范围的记录会产生幻行。比如说：<br>事务A查询范围为1～10的数据，此时表里只有1～9的数据；而事务B也开始准备事务查询，自然是只能看到1～9的数据；当事务A插入id为10的数据，并提交事务后；事务B还是看不到id&#x3D;10的数据，此时事务B如果尝试插入id&#x3D;10的数据就有可能报错。</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>事务A</th>
+<th>事务B</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>设置事务隔离级别为REPEATABLE READ</td>
+<td>设置事务隔离级别为REPEATABLE READ</td>
+</tr>
+<tr>
+<td>开始事务A：begin;</td>
+<td></td>
+</tr>
+<tr>
+<td>查询：select * from test;</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>开始事务B：begin;</td>
+</tr>
+<tr>
+<td></td>
+<td>查询数据：select * from test; (看不到id &#x3D; 10的数据)</td>
+</tr>
+<tr>
+<td>insert into test(id,username) values(10,’zhangsan’);</td>
+<td></td>
+</tr>
+<tr>
+<td>事务 A 提交: commit;</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>再次查询数据：select * from test; (看不到id &#x3D; 10的数据)</td>
+</tr>
+</tbody></table>
+<h3 id="MySQL的InnoDB是如何解决幻读问题"><a href="#MySQL的InnoDB是如何解决幻读问题" class="headerlink" title="MySQL的InnoDB是如何解决幻读问题"></a>MySQL的InnoDB是如何解决幻读问题</h3><p><code>MySQL</code>使用<code>next-key lock</code> + <code>MVVC</code>解决幻读问题：<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/innodb-next-key-locking.html">https://dev.mysql.com/doc/refman/5.7/en/innodb-next-key-locking.html</a></p>
+<h2 id="可串行化（Serializable）"><a href="#可串行化（Serializable）" class="headerlink" title="可串行化（Serializable）"></a>可串行化（Serializable）</h2><p>可串行化是指事务与其他事务是串行执行的，避免了幻读问题。</p>
+<table>
+<thead>
+<tr>
+<th>事务A</th>
+<th>事务B</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>设置事务隔离级别为SERIALIZABLE</td>
+<td>设置事务隔离级别为SERIALIZABLE</td>
+</tr>
+<tr>
+<td>开始事务A：begin;</td>
+<td></td>
+</tr>
+<tr>
+<td>insert into test(id, usename) values(15, ‘LaoZhang’);</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>开始事务B：begin;</td>
+</tr>
+<tr>
+<td></td>
+<td>查询数据：select * from test; (看不到任何数据，一直等待)</td>
+</tr>
+<tr>
+<td>事务 A 提交: commit;</td>
+<td>立即返回数据</td>
+</tr>
+</tbody></table>
+<h1 id="相关命令"><a href="#相关命令" class="headerlink" title="相关命令"></a>相关命令</h1><hr>
+<p><a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/innodb-transaction-model.html">https://dev.mysql.com/doc/refman/5.7/en/innodb-transaction-model.html</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E4%BA%8B%E5%8A%A1/" rel="tag"># 事务</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/02/27/knowledge/design/system/cache/" rel="prev" title="缓存的学习与总结">
+      <i class="fa fa-chevron-left"></i> 缓存的学习与总结
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/03/28/knowledge/java/ConcurrentHashMap/" rel="next" title="ConcurrentHashMap源码分析">
+      ConcurrentHashMap源码分析 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E7%9A%84ACID"><span class="nav-number">1.</span> <span class="nav-text">事务的ACID</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%9F%E5%AD%90%E6%80%A7Atomicity"><span class="nav-number">1.1.</span> <span class="nav-text">原子性Atomicity</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E8%87%B4%E6%80%A7Consistency"><span class="nav-number">1.2.</span> <span class="nav-text">一致性Consistency</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9A%94%E7%A6%BB%E6%80%A7Isolation"><span class="nav-number">1.3.</span> <span class="nav-text">隔离性Isolation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8C%81%E4%B9%85%E6%80%A7Durability"><span class="nav-number">1.4.</span> <span class="nav-text">持久性Durability</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E7%9A%84%E5%9B%9B%E7%A7%8D%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB"><span class="nav-number">2.</span> <span class="nav-text">事务的四种隔离级别</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%AA%E6%8F%90%E4%BA%A4%E8%AF%BB%EF%BC%88Read-uncommitted%EF%BC%89"><span class="nav-number">2.1.</span> <span class="nav-text">未提交读（Read uncommitted）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%B2%E6%8F%90%E4%BA%A4%E8%AF%BB%EF%BC%88Read-committed%EF%BC%89"><span class="nav-number">2.2.</span> <span class="nav-text">已提交读（Read committed）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%AF%E9%87%8D%E5%A4%8D%E8%AF%BB%EF%BC%88Repeatable-read%EF%BC%89%EF%BC%9AMySQL%E7%9A%84%E9%BB%98%E8%AE%A4%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB"><span class="nav-number">2.3.</span> <span class="nav-text">可重复读（Repeatable read）：MySQL的默认事务隔离级别</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MySQL%E7%9A%84InnoDB%E6%98%AF%E5%A6%82%E4%BD%95%E8%A7%A3%E5%86%B3%E5%B9%BB%E8%AF%BB%E9%97%AE%E9%A2%98"><span class="nav-number">2.3.1.</span> <span class="nav-text">MySQL的InnoDB是如何解决幻读问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%AF%E4%B8%B2%E8%A1%8C%E5%8C%96%EF%BC%88Serializable%EF%BC%89"><span class="nav-number">2.4.</span> <span class="nav-text">可串行化（Serializable）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E5%91%BD%E4%BB%A4"><span class="nav-number">3.</span> <span class="nav-text">相关命令</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">wangjie_fourth</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">47</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wangjie_fourth</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">146k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:12</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

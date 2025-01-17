@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="背景什么是EurekaEureka是Netflix使用java语言开发、最初基于AWS的一款客户端服务发现框架，后来被SpringCloud将其作为自己的子项目spring-cloud-netflix。Eureka是属于系统架构的中间层部分，它目的是解决微服务中服务发现、负载均衡等问题。它通过引入心跳检查、客户端缓存、自我保护等机制，确保了系统的高可用性、可伸缩性和灵活性。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Eureka的使用与总结">
+<meta property="og:url" content="http://example.com/2020/11/21/knowledge/SpringCloud/Eureka/index.html">
+<meta property="og:site_name" content="wangjie_fourth">
+<meta property="og:description" content="背景什么是EurekaEureka是Netflix使用java语言开发、最初基于AWS的一款客户端服务发现框架，后来被SpringCloud将其作为自己的子项目spring-cloud-netflix。Eureka是属于系统架构的中间层部分，它目的是解决微服务中服务发现、负载均衡等问题。它通过引入心跳检查、客户端缓存、自我保护等机制，确保了系统的高可用性、可伸缩性和灵活性。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/Region_AZ.png">
+<meta property="og:image" content="http://example.com/images/SelfProtect1.png">
+<meta property="og:image" content="http://example.com/images/SelfProtect2.png">
+<meta property="og:image" content="http://example.com/images/SelfProtect3.png">
+<meta property="og:image" content="http://example.com/images/Eureka.png">
+<meta property="article:published_time" content="2020-11-21T02:39:59.000Z">
+<meta property="article:modified_time" content="2025-01-17T13:51:37.572Z">
+<meta property="article:author" content="wangjie_fourth">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/Region_AZ.png">
+
+<link rel="canonical" href="http://example.com/2020/11/21/knowledge/SpringCloud/Eureka/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Eureka的使用与总结 | wangjie_fourth</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">wangjie_fourth</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">may the force be with you</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/11/21/knowledge/SpringCloud/Eureka/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wangjie_fourth">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="wangjie_fourth">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Eureka的使用与总结
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-11-21 10:39:59" itemprop="dateCreated datePublished" datetime="2020-11-21T10:39:59+08:00">2020-11-21</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-01-17 21:51:37" itemprop="dateModified" datetime="2025-01-17T21:51:37+08:00">2025-01-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/SpringCloud/" itemprop="url" rel="index"><span itemprop="name">SpringCloud</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><h2 id="什么是Eureka"><a href="#什么是Eureka" class="headerlink" title="什么是Eureka"></a>什么是Eureka</h2><p><code>Eureka</code>是<code>Netflix</code>使用<code>java</code>语言开发、最初基于<code>AWS</code>的一款客户端服务发现框架，后来被<code>SpringCloud</code>将其作为自己的子项目<code>spring-cloud-netflix</code>。<br><code>Eureka</code>是属于系统架构的中间层部分，它目的是解决微服务中服务发现、负载均衡等问题。它通过引入心跳检查、客户端缓存、自我保护等机制，确保了系统的高可用性、可伸缩性和灵活性。</p>
+<span id="more"></span>
+
+<h2 id="为什么需要Eureka"><a href="#为什么需要Eureka" class="headerlink" title="为什么需要Eureka"></a>为什么需要Eureka</h2><h3 id="服务多实例"><a href="#服务多实例" class="headerlink" title="服务多实例"></a>服务多实例</h3><p>后端服务通常要保证高可用性，一个服务可能会有多个实例。很难通过传统的根据ip + 端口号这种方式来完成方法调用。</p>
+<h3 id="弹性要求"><a href="#弹性要求" class="headerlink" title="弹性要求"></a>弹性要求</h3><p>假设某个服务功能只在特定时刻流量才会特别大，这时候只想在那个时刻加大这个服务的实例，过了这个时刻就削减这个服务的实例。此时，这个服务的实例是动态变化的。同上，很难通过传统的根据ip + 端口号这种方式来完成方法调用。</p>
+<h3 id="服务所在容器动态变化"><a href="#服务所在容器动态变化" class="headerlink" title="服务所在容器动态变化"></a>服务所在容器动态变化</h3><p>假设你在的公司足够大，想用一些ip动态匹配自己的某些服务器。也就是说这些服务所在的服务器的ip可能是动态变化的。同上，很难通过传统的根据ip + 端口号这种方式来完成方法调用。</p>
+<h3 id="开发困难"><a href="#开发困难" class="headerlink" title="开发困难"></a>开发困难</h3><p>其实如果你公司研发比较小的话，完全不用服务发现组件也是能完成日常开发的。比如说我现在所在的公司，每个服务的实例数量都是固定的，其实例所在的服务器也是不变的。这样的话，你完全可以借助<code>nginx</code>来完成。但是麻烦的是，你每套环境的<code>nginx</code>都需要单独配置，其配置文件还需要特殊维护。</p>
+<h1 id="Eureka"><a href="#Eureka" class="headerlink" title="Eureka"></a>Eureka</h1><h2 id="Region、Availability-Zone"><a href="#Region、Availability-Zone" class="headerlink" title="Region、Availability Zone"></a>Region、Availability Zone</h2><h3 id="背景-1"><a href="#背景-1" class="headerlink" title="背景"></a>背景</h3><p><code>Region</code>、<code>Availability Zone</code>是<code>AWS</code>提出的俩个概念。<br><img src="/images/Region_AZ.png"></p>
+<ul>
+<li><code>Region</code>: 不同的地理位置，如：华东地区、华北地区；</li>
+<li><code>Availability Zone</code>: 可用空间，可以理解成某个地区的某个机房；</li>
+</ul>
+<p>这俩个概念是针对应用发布时，新请求如何转发的问题。比如说像<code>amazon</code>这样全世界范围的电商网站，如果它需要进行服务发版时，希望外部请求旧系统的请求落到旧系统上，外部请求新系统的请求落到新系统上，以保证请求的准确性。</p>
+<h3 id="Eureka的实现"><a href="#Eureka的实现" class="headerlink" title="Eureka的实现"></a>Eureka的实现</h3><p><code>Eureka</code>内部也实现了<code>Region</code>、<code>Availability Zone</code>概念，并做了以下规定：</p>
+<ul>
+<li>每个<code>Region</code>有一个<code>Eureka Server</code>集群，每一个<code>Availability Zone</code>至少要有一个<code>Eureka Server</code>；</li>
+<li>各个<code>Region</code>彼此完全隔离，彼此内网不通，即：每个<code>Region</code>只能知道自己<code>Region</code>内部的所有服务实例，不知道其他<code>Region</code>服务实例；</li>
+<li>每个<code>Region</code>内部的所有<code>Availability Zone</code>之间是可以相互通信的</li>
+</ul>
+<h2 id="自我保护机制"><a href="#自我保护机制" class="headerlink" title="自我保护机制"></a>自我保护机制</h2><h3 id="背景-2"><a href="#背景-2" class="headerlink" title="背景"></a>背景</h3><p><code>Eureka</code>作为服务注册发现组件，很核心的一点就是要保证高可用性。因为一旦服务注册发现组件挂了，整个后端基本上就全挂了。<br><a target="_blank" rel="noopener" href="https://github.com/Netflix/eureka/wiki/Understanding-Eureka-Peer-to-Peer-Communication">自我保护机制</a>正是一种针对网络异常波动的安全保护措施，使用自我保护模式可以使得<code>Eureka</code>集群更加的健壮、稳定的运行。当一个<code>EurekaServer</code>监测到大于预期数量的已注册客户端以非正常方式终止其连接，并且同时正在等待在服务注册表中删除时，该<code>Eureka Server</code>将进入自我保护机制，以确保灾难性网络事件不会消除eureka注册表数据，并将其传播到下游所有客户端中。</p>
+<h3 id="具体过程"><a href="#具体过程" class="headerlink" title="具体过程"></a>具体过程</h3><p>自我保护机制的工作机制是如果在15分钟内超过15%的客户端节点都没有正常的心跳，那么<code>Eureka</code>就认为客户端与注册中心出现了网络故障，<code>Eureka Server</code>自动进入自我保护机制，此时会出现以下几种情况：</p>
+<ul>
+<li><code>Eureka Server</code>不再从注册表中移除因为长时间没有收到心跳而应该过期的服务；</li>
+<li><code>Eureka Server</code>仍然能够接收新服务的注册和查询请求，但是不会被同步到其他节点上，保证当前节点依然可用</li>
+<li>当网络稳定时，当前<code>Eureka Server</code>新的注册信息会被同步到其他节点中</li>
+</ul>
+<p>因为<code>Eureka Server</code>可以很好的应对因网络故障导致部分节点失联的情况，而不会像<code>ZK</code>那样如果有一半不可用的情况就会导致整个集群不可用而变成瘫痪。<br><code>Eureka</code>自我保护机制，通过配置<code>eureka.server.enable-self-preservation</code>控制自我保护机制，默认打开状态，建议生产环境打开此配置。启动自我保留的默认阙值是当前服务注册表大小的15%</p>
+<h3 id="举个例子"><a href="#举个例子" class="headerlink" title="举个例子"></a>举个例子</h3><p>1、正常情况下<br>假设你部署了一个<code>Eureka Server</code>双节点集群，并且有5个服务实例都向<code>Eureka Server1</code>注册，并且向同等<code>peer</code>节点<code>Eureka Server2</code>复制当前注册信息。<br><img src="/images/SelfProtect1.png"></p>
+<p>2、触发自我保护机制<br>由于网络问题，实例4、5发送的续租<code>renew</code>请求无法正常发送到<code>Eureka Server1</code>节点。<code>Eureka Server1</code>认为这俩个服务下线了，并向<code>peer</code>节点和下面的实例同步了这一消息。<br><code>Eureka Server1</code>又发现，此时下线实例数高于15%的客户端，此时<code>Eureka Server1</code>将进入自我保护机制。也就是后面再有服务接收不到心跳时，它也不从服务注册表删除该服务。<br><img src="/images/SelfProtect2.png"></p>
+<p>3、自我保护机制后的运行<br>此时，实例3即使真正的下线了，<code>Eureka Server1</code>也不会从服务注册表删除该实例。也就是说<code>Eureka Server2</code>和其他实例仍认为该实例3是健康的。<br><img src="/images/SelfProtect3.png"></p>
+<h2 id="客户端缓存机制"><a href="#客户端缓存机制" class="headerlink" title="客户端缓存机制"></a>客户端缓存机制</h2><h2 id="健康检查机制"><a href="#健康检查机制" class="headerlink" title="健康检查机制"></a>健康检查机制</h2><p>Eureka服务器不会向其注册的客户端发送保持活动请求，以了解他们是否处于活动状态，而是通过Eureka客户端向Eureka服务器发送心跳以便保持其状态。</p>
+<h2 id="工作流程"><a href="#工作流程" class="headerlink" title="工作流程"></a>工作流程</h2><p><img src="/images/Eureka.png"></p>
+<blockquote>
+<p>图中仅表示一个Region，<code>us-east-1c</code>、<code>us-east-1d</code>、<code>us-east-1e</code>表示一个<code>Availability Zone</code></p>
+</blockquote>
+<ul>
+<li><code>Application Service</code>：服务提供者</li>
+<li><code>Application Client</code>：服务消费者</li>
+<li><code>Make Remote Call</code>：调用<code>RESTful API</code></li>
+</ul>
+<h3 id="Eureka-Server服务启动"><a href="#Eureka-Server服务启动" class="headerlink" title="Eureka Server服务启动"></a><code>Eureka Server</code>服务启动</h3><p><code>Eureka Server</code>可以单节点部署，也可以集群部署。它是用于收集各个服务实例的注册信息（例如：IP、端口、服务名称等），<code>Eureka Server</code>将这些信息存储起来，这些存储的信息就是服务注册表。<br>需要注意的是，一个<code>AZ</code>内的服务实例只向该<code>AZ</code>内的<code>Eureka Server</code>注册信息。如果<code>Eureka Server</code>是集群部署的话，每个<code>AZ</code>的<code>Eureka Server</code>会将自己的服务注册表信息同步到其他<code>Eureka Server</code>实例上。</p>
+<blockquote>
+<p>replicate: 增量复制服务注册信息；单独Zone的服务只向该Zone的Eureka Server发送注册信息，其他Zone服务想知道服务信息，就得从对应Zone的Eureka Server拷贝数据</p>
+</blockquote>
+<h3 id="Eureka-Client客户端注册"><a href="#Eureka-Client客户端注册" class="headerlink" title="Eureka Client客户端注册"></a><code>Eureka Client</code>客户端注册</h3><p>一个服务在启动后，会向对应的<code>Eureka Server</code>发送注册请求；随后会周期性(<strong>默认30秒</strong>)的向Eureka Server发送心跳以续约自己的“租期”。</p>
+<p><code>Eureka Client</code>也会定时从<code>Eureka Sever</code>获取服务注册表信息，并将其缓存。这种机制就是客户端缓存机制。优点在于服务不需要每次向Server获取服务注册表，减轻Server端压力，并且也加快了服务端访问的速度。缺点就是数据一致性得不到保障，但这一点对于服务调用来说并不是非常致命的。</p>
+<h3 id="Eureka-Server检查服务状态"><a href="#Eureka-Server检查服务状态" class="headerlink" title="Eureka Server检查服务状态"></a><code>Eureka Server</code>检查服务状态</h3><p><code>Eureka Server</code>内部会定时检查服务注册表内的服务有没有发送心跳，如果没有，将会注销该服务实例。（默认90秒）<br><code>Eureka Server</code>可以集群部署，默认保证在90秒内，Eureka Server集群内的所有实例中数据达到一致。从这一点看，<code>Eureka Server</code>实例的角色都是一致的，不存在主从关系。这一点，跟<code>Zookeeper</code>就不一样。</p>
+<blockquote>
+<p>Eureka 官方将Eureka Server集群中的所有实例称为<code>peer</code></p>
+</blockquote>
+<h3 id="Eureka-Client下线服务"><a href="#Eureka-Client下线服务" class="headerlink" title="Eureka Client下线服务"></a><code>Eureka Client</code>下线服务</h3><p><code>Eureka</code>协议要求客户端在永久离开时执行显示取消注册操作。例如，在提供的java客户端通过shutdown()方法完成。任何连续3次心跳续订失败的客户端也会被认为是不正当的终止，并将被后台进程从服务注册表中移除。</p>
+<h1 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h1><p>1、服务注册表的实现<br><code>PeerAwareInstanceRegistryImpl</code>中的</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> ConcurrentHashMap&lt;String, Map&lt;String, Lease&lt;InstanceInfo&gt;&gt;&gt; registry</span><br><span class="line">            = <span class="keyword">new</span> <span class="title class_">ConcurrentHashMap</span>&lt;String, Map&lt;String, Lease&lt;InstanceInfo&gt;&gt;&gt;();</span><br></pre></td></tr></table></figure>
+
+<p>2、服务注册流程</p>
+<ul>
+<li>客户端：DiscoveryClient#register</li>
+<li>服务端：PeerAwareInstanceRegistryImpl#register</li>
+</ul>
+<p>3、服务续租流程</p>
+<ul>
+<li>客户端：DiscoveryClient#renew</li>
+<li>服务端：PeerAwareInstanceRegistryImpl#renew<blockquote>
+<p>客户端心跳线程：DiscoveryClient#initScheduledTasks、HeartbeatThread</p>
+</blockquote>
+</li>
+</ul>
+<p>4、服务剔除流程<br>内部检查客户端续约情况的：AbstractInstanceRegistry#evictionTimer、deltaRetentionTimer</p>
+<p>5、客户端获取服务端中服务注册表信息<br>DiscoveryClient#getAndStoreFullRegistry</p>
+<h1 id="相面面试题"><a href="#相面面试题" class="headerlink" title="相面面试题"></a>相面面试题</h1><p>1、<code>Eureka</code>和<code>Zookeeper</code>比较</p>
+<hr>
+<p><a target="_blank" rel="noopener" href="https://github.com/Netflix/eureka/">https://github.com/Netflix/eureka/</a><br><a target="_blank" rel="noopener" href="https://juejin.im/post/6844903928178409479">https://juejin.im/post/6844903928178409479</a><br><a target="_blank" rel="noopener" href="https://nobodyiam.com/2016/06/25/dive-into-eureka/">https://nobodyiam.com/2016/06/25/dive-into-eureka/</a><br><a target="_blank" rel="noopener" href="https://www.fangzhipeng.com/springcloud/2017/08/11/eureka-resources.html">https://www.fangzhipeng.com/springcloud/2017/08/11/eureka-resources.html</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/u012105931/article/details/104659073">https://blog.csdn.net/u012105931/article/details/104659073</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/nhdlb/p/12968814.html">https://www.cnblogs.com/nhdlb/p/12968814.html</a></p>
+<hr>
+<ul>
+<li><p>背景：<br>1、什么是Eureka？<br>2、为什么需要Eureka？它解决了什么问题？</p>
+</li>
+<li><p>具体介绍Eureka<br>1、Region、Availability Zone<br>2、自我保护机制<br>3、健康检查机制<br>4、具体工作流程</p>
+</li>
+<li><p>集群启动</p>
+</li>
+<li><p>一个小项目的使用<br>1、小示例<br>2、配置相关参数介绍</p>
+</li>
+<li><p>源码分析<br>1、注册中心的启动<br>2、客户端发送心跳、注册、续租</p>
+</li>
+<li><p>相关面试题</p>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/11/17/knowledge/charset/" rel="prev" title="对字符的理解">
+      <i class="fa fa-chevron-left"></i> 对字符的理解
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/12/11/experience/BitOperation/" rel="next" title="位运算的应用">
+      位运算的应用 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFEureka"><span class="nav-number">1.1.</span> <span class="nav-text">什么是Eureka</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81Eureka"><span class="nav-number">1.2.</span> <span class="nav-text">为什么需要Eureka</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%8D%E5%8A%A1%E5%A4%9A%E5%AE%9E%E4%BE%8B"><span class="nav-number">1.2.1.</span> <span class="nav-text">服务多实例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%B9%E6%80%A7%E8%A6%81%E6%B1%82"><span class="nav-number">1.2.2.</span> <span class="nav-text">弹性要求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%8D%E5%8A%A1%E6%89%80%E5%9C%A8%E5%AE%B9%E5%99%A8%E5%8A%A8%E6%80%81%E5%8F%98%E5%8C%96"><span class="nav-number">1.2.3.</span> <span class="nav-text">服务所在容器动态变化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%80%E5%8F%91%E5%9B%B0%E9%9A%BE"><span class="nav-number">1.2.4.</span> <span class="nav-text">开发困难</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Eureka"><span class="nav-number">2.</span> <span class="nav-text">Eureka</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Region%E3%80%81Availability-Zone"><span class="nav-number">2.1.</span> <span class="nav-text">Region、Availability Zone</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%83%8C%E6%99%AF-1"><span class="nav-number">2.1.1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Eureka%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-number">2.1.2.</span> <span class="nav-text">Eureka的实现</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E6%88%91%E4%BF%9D%E6%8A%A4%E6%9C%BA%E5%88%B6"><span class="nav-number">2.2.</span> <span class="nav-text">自我保护机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%83%8C%E6%99%AF-2"><span class="nav-number">2.2.1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B7%E4%BD%93%E8%BF%87%E7%A8%8B"><span class="nav-number">2.2.2.</span> <span class="nav-text">具体过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BE%E4%B8%AA%E4%BE%8B%E5%AD%90"><span class="nav-number">2.2.3.</span> <span class="nav-text">举个例子</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%BC%93%E5%AD%98%E6%9C%BA%E5%88%B6"><span class="nav-number">2.3.</span> <span class="nav-text">客户端缓存机制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E6%9C%BA%E5%88%B6"><span class="nav-number">2.4.</span> <span class="nav-text">健康检查机制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="nav-number">2.5.</span> <span class="nav-text">工作流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Eureka-Server%E6%9C%8D%E5%8A%A1%E5%90%AF%E5%8A%A8"><span class="nav-number">2.5.1.</span> <span class="nav-text">Eureka Server服务启动</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Eureka-Client%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%B3%A8%E5%86%8C"><span class="nav-number">2.5.2.</span> <span class="nav-text">Eureka Client客户端注册</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Eureka-Server%E6%A3%80%E6%9F%A5%E6%9C%8D%E5%8A%A1%E7%8A%B6%E6%80%81"><span class="nav-number">2.5.3.</span> <span class="nav-text">Eureka Server检查服务状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Eureka-Client%E4%B8%8B%E7%BA%BF%E6%9C%8D%E5%8A%A1"><span class="nav-number">2.5.4.</span> <span class="nav-text">Eureka Client下线服务</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="nav-number">3.</span> <span class="nav-text">源码分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%9B%B8%E9%9D%A2%E9%9D%A2%E8%AF%95%E9%A2%98"><span class="nav-number">4.</span> <span class="nav-text">相面面试题</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">wangjie_fourth</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">47</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wangjie_fourth</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">146k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:12</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

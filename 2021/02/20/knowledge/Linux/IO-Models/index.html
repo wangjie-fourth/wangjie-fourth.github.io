@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="今天在看到Redis的IO多路复用时，顺便总结一下在Unix上各个IO模型，以及他们在网络服务中的应用过程。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机IO模型总结">
+<meta property="og:url" content="http://example.com/2021/02/20/knowledge/Linux/IO-Models/index.html">
+<meta property="og:site_name" content="wangjie_fourth">
+<meta property="og:description" content="今天在看到Redis的IO多路复用时，顺便总结一下在Unix上各个IO模型，以及他们在网络服务中的应用过程。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/Linux/IO-Models/bio.png">
+<meta property="og:image" content="http://example.com/images/Linux/IO-Models/nio.png">
+<meta property="og:image" content="http://example.com/images/Linux/IO-Models/multiplexing-io.png">
+<meta property="og:image" content="http://example.com/images/Linux/IO-Models/signal-driven-IO.png">
+<meta property="article:published_time" content="2021-02-20T14:57:46.000Z">
+<meta property="article:modified_time" content="2025-01-17T13:51:37.570Z">
+<meta property="article:author" content="wangjie_fourth">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/Linux/IO-Models/bio.png">
+
+<link rel="canonical" href="http://example.com/2021/02/20/knowledge/Linux/IO-Models/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>计算机IO模型总结 | wangjie_fourth</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">wangjie_fourth</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">may the force be with you</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/20/knowledge/Linux/IO-Models/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wangjie_fourth">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="wangjie_fourth">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          计算机IO模型总结
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-02-20 22:57:46" itemprop="dateCreated datePublished" datetime="2021-02-20T22:57:46+08:00">2021-02-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-01-17 21:51:37" itemprop="dateModified" datetime="2025-01-17T21:51:37+08:00">2025-01-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>今天在看到<code>Redis</code>的<code>IO</code>多路复用时，顺便总结一下在<code>Unix</code>上各个IO模型，以及他们在网络服务中的应用过程。</p>
+<span id="more"></span>
+
+<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>首先，我们先想想计算机在互联网的工作流程。我是做后端的，所以经常接触到客户端发送一个<code>Http</code>请求，因为应用进程监控指定的端口，所以计算机会按照之前该进程的要求，处理数据。<br>现在我们来细化一下这个问题：其实客户端与服务端的交互，都是通过<code>Socket</code>来交互的，进程读取<code>Socket</code>的数据，然后向<code>Socket</code>写入数据，接着用户就可以看到服务端返回的数据了。<br>这里我们要想一个问题：</p>
+<ul>
+<li><code>Socket</code>究竟是什么？为什么我们读它的数据，就是读用户输入的数据；向它写数据，用户就可以读到数据？</li>
+</ul>
+<p>其实，<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/32360506">在<code>Unix</code>系统下<code>Socket</code>就是一个文件而已</a>。假设一个进程监控某个端口，后来客户端发送<code>Http</code>请求到这个网络端口，<br>进程将这个链接变成一个<code>Socket</code>，当然就是<code>Unix</code>系统上的一个文件而已，这些文件都会有<code>File Descriptor</code>，当用户持续向服务端发送消息时，其实就是在往这些<code>Socket</code>文件写入数据，<br>当它写完之后，就需要<code>CPU</code>来告诉进程，数据准备好了。通常情况，一个后端服务会创建很多的<code>Socket</code>文件，这就需要<code>CPU</code>去定时检查这些<code>Socket</code>文件，如果这些<code>Socket</code>文件中有部分可读的话，就需要通知进程来读取。<br>所以，<code>Unix</code>下面的<code>IO</code>模型都是为了尽可能的减少中断<code>CPU</code>执行，因为每次<code>CPU</code>从其他任务转来检查这些<code>Socket</code>文件的时候，都需要上下文切换，而这些代价都是挺大的。</p>
+<h1 id="Unix网络编程中定义的五种IO模型"><a href="#Unix网络编程中定义的五种IO模型" class="headerlink" title="Unix网络编程中定义的五种IO模型"></a>Unix网络编程中定义的五种IO模型</h1><h2 id="BIO：阻塞IO"><a href="#BIO：阻塞IO" class="headerlink" title="BIO：阻塞IO"></a>BIO：阻塞IO</h2><p><img src="/images/Linux/IO-Models/bio.png"><br>在这种<code>IO</code>模型下，程序会阻塞在系统读取数据的那行方法下。此时即使<code>CPU</code>执行到该进程，也只能在这里等待。</p>
+<h2 id="NIO：非阻塞IO"><a href="#NIO：非阻塞IO" class="headerlink" title="NIO：非阻塞IO"></a>NIO：非阻塞IO</h2><p><img src="/images/Linux/IO-Models/nio.png"><br>程序不会卡在读取数据的方法下，最起码不会让<code>CPU</code>在那白白的等待。但也是有缺点，<code>CPU</code>可能会浪费时间在轮询上。</p>
+<h2 id="MIO：IO多路复用"><a href="#MIO：IO多路复用" class="headerlink" title="MIO：IO多路复用"></a>MIO：IO多路复用</h2><p><img src="/images/Linux/IO-Models/multiplexing-io.png"><br><code>IO</code>多路复用是指程序在监控多个<code>IO</code>事件时，只需要通过一个方法来监控。例如，上面的<code>BIO</code>、<code>NIO</code>来监控某个<code>IO</code>事件时，可能就要写一个方法了，也就是你监控n个<code>IO</code>，你就需要写<code>n</code>个方法。<br>而<code>IO</code>多路复用是指自己监控多个<code>IO</code>事件，当其中有<code>IO</code>准备好了的时候，就通知指定的进程。</p>
+<h2 id="SIO：信号驱动IO"><a href="#SIO：信号驱动IO" class="headerlink" title="SIO：信号驱动IO"></a>SIO：信号驱动IO</h2><p><img src="/images/Linux/IO-Models/signal-driven-IO.png"></p>
+<h2 id="AIO：异步IO"><a href="#AIO：异步IO" class="headerlink" title="AIO：异步IO"></a>AIO：异步IO</h2><h1 id="实现IO多路复用的方法"><a href="#实现IO多路复用的方法" class="headerlink" title="实现IO多路复用的方法"></a>实现IO多路复用的方法</h1><h2 id="select、poll"><a href="#select、poll" class="headerlink" title="select、poll"></a>select、poll</h2><p><code>select</code>、<code>poll</code>相同点是都会监控很多<code>fd</code>，当这些<code>fd</code>中有准备好的<code>IO</code>事件时，就会通知<code>CPU</code>。但是它不会告诉具体是哪一个<code>FD</code>准备好了，需要<code>CPU</code>自己再轮询一遍<code>FD</code>才知道哪些<code>IO</code>准备好了。<br>不同点就是：<br><code>select</code>只能创建指定大小的监控队列，即无论你需要监视多少个<code>fd</code>时，它都会创建长度定长的数组。比如说，你只需要监控3个<code>fd</code>，但你还是会创建长度为1024的数组，然后会创建指定<code>fd</code>位置上存储；<br><code>poll</code>是可以动态创建大小的监控队列，你需要监控三个<code>fd</code>，就只创建长度为3的数组。</p>
+<h2 id="epoll"><a href="#epoll" class="headerlink" title="epoll"></a>epoll</h2><p><code>epoll</code>比上面俩个方法都好一点，当它监控多个<code>fd</code>，当其中有哪个<code>fd</code>准备好了时，它会告诉<code>CPU</code>哪些<code>fd</code>准备好了。<code>CPU</code>就不需要再去轮询这些<code>fd</code>，检查哪个<code>fd</code>准备好了。</p>
+<hr>
+<p><a target="_blank" rel="noopener" href="https://www.ituring.com.cn/book/650">https://www.ituring.com.cn/book/650</a><br><a target="_blank" rel="noopener" href="https://jvns.ca/blog/2017/06/03/async-io-on-linux--select--poll--and-epoll/">https://jvns.ca/blog/2017/06/03/async-io-on-linux--select--poll--and-epoll/</a><br><a target="_blank" rel="noopener" href="https://devarea.com/linux-io-multiplexing-select-vs-poll-vs-epoll/#.XlerOZMzZ3l">https://devarea.com/linux-io-multiplexing-select-vs-poll-vs-epoll/#.XlerOZMzZ3l</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/02/09/knowledge/Linux/zero-copy/" rel="prev" title="零拷贝的了解与总结">
+      <i class="fa fa-chevron-left"></i> 零拷贝的了解与总结
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/02/27/knowledge/design/system/cache/" rel="next" title="缓存的学习与总结">
+      缓存的学习与总结 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Unix%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E4%B8%AD%E5%AE%9A%E4%B9%89%E7%9A%84%E4%BA%94%E7%A7%8DIO%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.</span> <span class="nav-text">Unix网络编程中定义的五种IO模型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#BIO%EF%BC%9A%E9%98%BB%E5%A1%9EIO"><span class="nav-number">2.1.</span> <span class="nav-text">BIO：阻塞IO</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NIO%EF%BC%9A%E9%9D%9E%E9%98%BB%E5%A1%9EIO"><span class="nav-number">2.2.</span> <span class="nav-text">NIO：非阻塞IO</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MIO%EF%BC%9AIO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8"><span class="nav-number">2.3.</span> <span class="nav-text">MIO：IO多路复用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SIO%EF%BC%9A%E4%BF%A1%E5%8F%B7%E9%A9%B1%E5%8A%A8IO"><span class="nav-number">2.4.</span> <span class="nav-text">SIO：信号驱动IO</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AIO%EF%BC%9A%E5%BC%82%E6%AD%A5IO"><span class="nav-number">2.5.</span> <span class="nav-text">AIO：异步IO</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0IO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8%E7%9A%84%E6%96%B9%E6%B3%95"><span class="nav-number">3.</span> <span class="nav-text">实现IO多路复用的方法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#select%E3%80%81poll"><span class="nav-number">3.1.</span> <span class="nav-text">select、poll</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#epoll"><span class="nav-number">3.2.</span> <span class="nav-text">epoll</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">wangjie_fourth</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">47</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wangjie_fourth</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">146k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:12</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

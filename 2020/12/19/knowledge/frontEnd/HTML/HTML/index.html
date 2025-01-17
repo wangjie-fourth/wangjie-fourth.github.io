@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="零零散散学了几个月的前端，汇总一下对HTML的理解吧，写完就忘记～">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTML总结">
+<meta property="og:url" content="http://example.com/2020/12/19/knowledge/frontEnd/HTML/HTML/index.html">
+<meta property="og:site_name" content="wangjie_fourth">
+<meta property="og:description" content="零零散散学了几个月的前端，汇总一下对HTML的理解吧，写完就忘记～">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/html01.png">
+<meta property="article:published_time" content="2020-12-19T13:01:35.000Z">
+<meta property="article:modified_time" content="2025-01-17T13:51:37.574Z">
+<meta property="article:author" content="wangjie_fourth">
+<meta property="article:tag" content="HTML">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/html01.png">
+
+<link rel="canonical" href="http://example.com/2020/12/19/knowledge/frontEnd/HTML/HTML/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>HTML总结 | wangjie_fourth</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">wangjie_fourth</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">may the force be with you</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/12/19/knowledge/frontEnd/HTML/HTML/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wangjie_fourth">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="wangjie_fourth">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          HTML总结
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-12-19 21:01:35" itemprop="dateCreated datePublished" datetime="2020-12-19T21:01:35+08:00">2020-12-19</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-01-17 21:51:37" itemprop="dateModified" datetime="2025-01-17T21:51:37+08:00">2025-01-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">前端</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>零零散散学了几个月的前端，汇总一下对HTML的理解吧，写完就忘记～</p>
+<span id="more"></span>
+
+<h1 id="历史"><a href="#历史" class="headerlink" title="历史"></a>历史</h1><p><code>HTML</code>是<code>Time Berners-Lee</code>在<code>1990</code>年发明的。看看他的生平：</p>
+<ul>
+<li><code>1994</code>年，离开欧洲到美国去建立<code>W3C</code></li>
+<li><code>2004</code>年，获取英国女皇为他颁发的大英帝国爵级司令勋章</li>
+<li><code>2016</code>年，获得了图灵奖</li>
+</ul>
+<p><img src="/images/html01.png"><br>这位老爷子的成就不仅仅是发明了<code>HTML</code>，还定义了一整套现在人们网页使用的流程，发明了<code>WWW</code>、<code>HTTP</code>、<code>URL</code>。老爷子在发现自己制定的一套约定有很大的发展空间，需要花费自己更多的精力维护时，辞退自己原本工作，创办了<code>W3C</code>组织，用于指定一系列的规则。</p>
+<h1 id="默认样式"><a href="#默认样式" class="headerlink" title="默认样式"></a>默认样式</h1><h2 id="默认样式的历史"><a href="#默认样式的历史" class="headerlink" title="默认样式的历史"></a>默认样式的历史</h2><p>在发明<code>HTML</code>的时候，还没有发明出来<code>CSS</code>。为了让游览器更好展示页面，他规定游览器在识别标签的时候，要为其附上<strong>默认样式</strong>。<br><a href="%E9%BB%98%E8%AE%A4%E6%A0%B7%E5%BC%8F%E7%9A%84%E5%9B%BE%E7%89%87">default_style</a></p>
+<blockquote>
+<p>可以通过开发者工具Elements -&gt; Styles -&gt; user agent stylesheet查看默认的样式 。</p>
+</blockquote>
+<h2 id="默认样式的缺点以及解决办法"><a href="#默认样式的缺点以及解决办法" class="headerlink" title="默认样式的缺点以及解决办法"></a>默认样式的缺点以及解决办法</h2><p>现如今，我们都用<code>CSS</code>来修改页面样式。有时候，默认样式会对我们操作<code>CSS</code>产生影响，出现错误的时候，不容易定位。所以，一般开发的时候都会删除默认样式。这也叫做**<code>CSS Reset</code>**</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">* &#123;</span><br><span class="line">  <span class="attribute">margin</span>: <span class="number">0</span>;</span><br><span class="line">  <span class="attribute">padding</span>: <span class="number">0</span>;</span><br><span class="line">  <span class="attribute">box-sizing</span>: border-box;</span><br><span class="line">&#125;</span><br><span class="line">*<span class="selector-pseudo">::before</span>,</span><br><span class="line">*<span class="selector-pseudo">::after</span> &#123;</span><br><span class="line">  <span class="attribute">box-sizing</span>: border-box;</span><br><span class="line">&#125;</span><br><span class="line"><span class="selector-tag">a</span> &#123;</span><br><span class="line">  <span class="attribute">color</span>: inherit;</span><br><span class="line">  <span class="attribute">text-decoration</span>: none;</span><br><span class="line">&#125;</span><br><span class="line"><span class="selector-tag">input</span>,</span><br><span class="line"><span class="selector-tag">button</span> &#123;</span><br><span class="line">  <span class="attribute">font-family</span>: inherit;</span><br><span class="line">&#125;</span><br><span class="line"><span class="selector-tag">ol</span>,</span><br><span class="line"><span class="selector-tag">ul</span> &#123;</span><br><span class="line">  <span class="attribute">list-style</span>: none;</span><br><span class="line">&#125;</span><br><span class="line"><span class="selector-tag">table</span> &#123;</span><br><span class="line">  <span class="attribute">border-collapse</span>: collapse;</span><br><span class="line">  <span class="attribute">border-spacing</span>: <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>其实这种<code>CSS Reset</code>代码可以从大型网站找到的，比如淘宝</p>
+</blockquote>
+<h1 id="对HTML的理解"><a href="#对HTML的理解" class="headerlink" title="对HTML的理解"></a>对HTML的理解</h1><p><code>HTML</code>其实就是一个文件，游览器通过<code>HTTP</code>将服务器上的文件传输到本地游览器，游览器<strong>根据<code>W3C</code>制定的规则</strong>来解析、展示。这在后面学习标签的时候，就能理解到。<br>比如说<code>em</code>、<code>strong</code>标签，这个标签在定义上规定：</p>
+<ul>
+<li><code>em</code>：表示在语气上强调；</li>
+<li><code>strong</code>：在内容上强调；</li>
+</ul>
+<p>规定就是规定，规定也仅仅是规定。我愿意遵守就遵守，所以你要是非胡乱用这些标签，其实也并不是不可以。但大多数情况下，我们还是要遵守这些规定的。因为这能更好的加强人机交互，毕竟机器可读不出来语意。<br>对了，还有一种说法。<code>HTML</code>大多数标签其实等于<code>div</code> + <code>指定的CSS</code>。感觉还是很有道理的，只不过这些<code>CSS</code>由游览器来添加罢了。</p>
+<h1 id="HTML知识点"><a href="#HTML知识点" class="headerlink" title="HTML知识点"></a>HTML知识点</h1><p>下面就是一些知识点了，基本就是自己理解版本的<a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/">MDN</a>。</p>
+<h2 id="HTML文件结构"><a href="#HTML文件结构" class="headerlink" title="HTML文件结构"></a>HTML文件结构</h2><p><code>HTML</code>文件的大致结构如下：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!doctype <span class="keyword">html</span>&gt;</span> 文件描述，表示该文件是html文件。again，又一次表明约定的重要性</span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">&quot;zh&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;UTF-8&quot;</span>&gt;</span> 描述该页面数据的数据，俗称元数据</span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">&quot;viewport&quot;</span></span></span><br><span class="line"><span class="tag">          <span class="attr">content</span>=<span class="string">&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;</span>&gt;</span> 禁用缩放；兼容手机</span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">&quot;X-UA-Compatible&quot;</span> <span class="attr">content</span>=<span class="string">&quot;ie=edge&quot;</span> /&gt;</span> 告诉IE游览器使用最新版内核解析该文件</span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>文件的描述<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Learn/HTML/Introduction_to_HTML/Getting_started">参考资料</a></p>
+</blockquote>
+<h2 id="HTML元素"><a href="#HTML元素" class="headerlink" title="HTML元素"></a>HTML元素</h2><p>这里有几个有意思的小知识点，具体标签的用法，以后再写吧。</p>
+<h3 id="块级元素和内联元素"><a href="#块级元素和内联元素" class="headerlink" title="块级元素和内联元素"></a>块级元素和内联元素</h3><p>这是HTML中非常重要的元素分类，但是在<code>HTML5</code>重新定义元素的分类。</p>
+<ul>
+<li>块级元素：页面中以块的形式展现 —— 相对于其前面的内容它会出现在新的一行，其后的内容也会被挤到下一行展现</li>
+<li>内联元素：内联元素不会导致文本换行</li>
+</ul>
+<p>这里可能就需要了解元素的种类，比如说：<code>div</code>是块级元素，<code>a</code>是内联元素。这里其实涉及到<strong>样式</strong>的问题，一些布局技巧中建议：</p>
+<ul>
+<li>不要把块级元素放在内联元素中<blockquote>
+<p>事事都有特殊情况，div标签就可以放在a标签</p>
+</blockquote>
+</li>
+</ul>
+<h3 id="布尔属性"><a href="#布尔属性" class="headerlink" title="布尔属性"></a>布尔属性</h3><p>这其实是我开发遇到这种属性，然后在<code>MDN</code>看到这个介绍，印象有点深，就记录一下。<br><code>HTML</code>标签中允许不写属性值，这种属性就称为布尔属性。比如说：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;text&quot;</span> <span class="attr">disabled</span>=<span class="string">&quot;disabled&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Learn/HTML/Introduction_to_HTML/Getting_started">参考知识</a></p>
+</blockquote>
+<h1 id="HTML5了解"><a href="#HTML5了解" class="headerlink" title="HTML5了解"></a>HTML5了解</h1><p>我自己没总体的学习过<code>HTML5</code>，只是有时候用了一下。这里从别人抄过来<code>HTML5</code>的大致目录，以后再总结吧。<br><code>HTML5</code>其实就是最新版本的<code>HTML</code>语言，包含下述技术：</p>
+<ul>
+<li>新标签、新属性</li>
+<li>新的通信技术：WebSockets、WebRTC等</li>
+<li>离线存储技术：LocalStorage、断网检测</li>
+<li>多媒体技术：视频、音频</li>
+<li>图像技术：Canvas、SVG、WebGL</li>
+<li>Web增强技术：HistoryAPI、全屏</li>
+<li>设备相关技术：摄像头、触摸屏</li>
+<li>新的样式技术：CSS3新的Flex、Grid布局方式</li>
+</ul>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/Guide/HTML/HTML5">参考知识</a></p>
+</blockquote>
+<hr>
+<p><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E8%92%82%E5%A7%86%C2%B7%E4%BC%AF%E7%BA%B3%E6%96%AF-%E6%9D%8E">Time Berners-Lee生平介绍</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/HTML/" rel="tag"># HTML</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/12/15/experience/multiaTenant/" rel="prev" title="系统的多租户改造">
+      <i class="fa fa-chevron-left"></i> 系统的多租户改造
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/12/27/knowledge/java/ThreadLocal/" rel="next" title="线程中数据传递问题">
+      线程中数据传递问题 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8E%86%E5%8F%B2"><span class="nav-number">1.</span> <span class="nav-text">历史</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%BB%98%E8%AE%A4%E6%A0%B7%E5%BC%8F"><span class="nav-number">2.</span> <span class="nav-text">默认样式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%BB%98%E8%AE%A4%E6%A0%B7%E5%BC%8F%E7%9A%84%E5%8E%86%E5%8F%B2"><span class="nav-number">2.1.</span> <span class="nav-text">默认样式的历史</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%BB%98%E8%AE%A4%E6%A0%B7%E5%BC%8F%E7%9A%84%E7%BC%BA%E7%82%B9%E4%BB%A5%E5%8F%8A%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95"><span class="nav-number">2.2.</span> <span class="nav-text">默认样式的缺点以及解决办法</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AF%B9HTML%E7%9A%84%E7%90%86%E8%A7%A3"><span class="nav-number">3.</span> <span class="nav-text">对HTML的理解</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#HTML%E7%9F%A5%E8%AF%86%E7%82%B9"><span class="nav-number">4.</span> <span class="nav-text">HTML知识点</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#HTML%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84"><span class="nav-number">4.1.</span> <span class="nav-text">HTML文件结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HTML%E5%85%83%E7%B4%A0"><span class="nav-number">4.2.</span> <span class="nav-text">HTML元素</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9D%97%E7%BA%A7%E5%85%83%E7%B4%A0%E5%92%8C%E5%86%85%E8%81%94%E5%85%83%E7%B4%A0"><span class="nav-number">4.2.1.</span> <span class="nav-text">块级元素和内联元素</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%83%E5%B0%94%E5%B1%9E%E6%80%A7"><span class="nav-number">4.2.2.</span> <span class="nav-text">布尔属性</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#HTML5%E4%BA%86%E8%A7%A3"><span class="nav-number">5.</span> <span class="nav-text">HTML5了解</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">wangjie_fourth</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">47</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wangjie_fourth</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">146k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:12</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

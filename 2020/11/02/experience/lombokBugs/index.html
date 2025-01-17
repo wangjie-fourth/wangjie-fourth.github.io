@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="自从去年接触过Lombok后，就变成它深深的迷弟，毕竟提高了老高的生产力。以至于在新项目上，我会无脑使用Lombok，在改老项目的时候，我也是尽量使用Lombok。 之前也听说过Lombok的缺点，无非是对高版本的JDK不支持，会强制要求所有开发人员都使用Lombok。但这对于我们写业务代码人来说，这都不是事。业务系统谁会没事升级JDK，能提高生产力的工具谁又会拒绝。所以上面俩个缺点对于我来说，都">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用Lombok遇到的问题">
+<meta property="og:url" content="http://example.com/2020/11/02/experience/lombokBugs/index.html">
+<meta property="og:site_name" content="wangjie_fourth">
+<meta property="og:description" content="自从去年接触过Lombok后，就变成它深深的迷弟，毕竟提高了老高的生产力。以至于在新项目上，我会无脑使用Lombok，在改老项目的时候，我也是尽量使用Lombok。 之前也听说过Lombok的缺点，无非是对高版本的JDK不支持，会强制要求所有开发人员都使用Lombok。但这对于我们写业务代码人来说，这都不是事。业务系统谁会没事升级JDK，能提高生产力的工具谁又会拒绝。所以上面俩个缺点对于我来说，都">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/annotationProcess.png">
+<meta property="article:published_time" content="2020-11-02T13:06:47.000Z">
+<meta property="article:modified_time" content="2025-01-17T13:51:37.568Z">
+<meta property="article:author" content="wangjie_fourth">
+<meta property="article:tag" content="项目规范">
+<meta property="article:tag" content="Lombok">
+<meta property="article:tag" content="Annotation">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/annotationProcess.png">
+
+<link rel="canonical" href="http://example.com/2020/11/02/experience/lombokBugs/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>使用Lombok遇到的问题 | wangjie_fourth</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">wangjie_fourth</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">may the force be with you</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/11/02/experience/lombokBugs/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wangjie_fourth">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="wangjie_fourth">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          使用Lombok遇到的问题
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-11-02 21:06:47" itemprop="dateCreated datePublished" datetime="2020-11-02T21:06:47+08:00">2020-11-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-01-17 21:51:37" itemprop="dateModified" datetime="2025-01-17T21:51:37+08:00">2025-01-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%88%AC%E5%9D%91%E8%B7%AF/" itemprop="url" rel="index"><span itemprop="name">爬坑路</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.6k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>自从去年接触过<code>Lombok</code>后，就变成它深深的迷弟，毕竟提高了老高的生产力。以至于在新项目上，我会无脑使用<code>Lombok</code>，在改老项目的时候，我也是尽量使用<code>Lombok</code>。</p>
+<p>之前也听说过<code>Lombok</code>的缺点，无非是对高版本的<code>JDK</code>不支持，会强制要求所有开发人员都使用<code>Lombok</code>。但这对于我们写业务代码人来说，这都不是事。业务系统谁会没事升级<code>JDK</code>，能提高生产力的工具谁又会拒绝。所以上面俩个缺点对于我来说，都不是事。</p>
+<p>但自从上次遇到一个坑之后，发现这事就不那么简单了。在老系统中使用<code>Lombok</code>替换<code>get</code>、<code>set</code>是有坑的，万一踩到，就是生产事故了；而且像<code>Lombok</code>这样覆盖字节码文件，而不是生成新字节码文件的操作，的确是不太好。只要踩到坑，又会坑到你怀疑人生。</p>
+<span id="more"></span>
+
+<h1 id="先说我遇到的坑"><a href="#先说我遇到的坑" class="headerlink" title="先说我遇到的坑"></a>先说我遇到的坑</h1><h2 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h2><p>事情起源是是一次<code>feign</code>切换的需求。我的老项目中，是使用传统<code>HttpUtils</code>手工来与对应服务通信的。代码大概是这样的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">String</span> <span class="variable">resultJson</span> <span class="operator">=</span> HttpUtil.get(url + <span class="string">&quot;/fin/test?code=&quot;</span> + code, <span class="literal">null</span>);</span><br><span class="line">RespDTO&lt;Result&gt; respDTO = JSON.parseObject(resultJson, <span class="keyword">new</span> <span class="title class_">TypeReference</span>&lt;RespDTO&lt;Result&gt;&gt;() &#123;&#125;);</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>说一下重点：这里是使用<code>fastJson</code>来反序列化数据的。</p>
+</blockquote>
+<p>后来因为后端系统使用<code>SpringCloud</code>那一套，大佬觉得使用<code>HttpUtils</code>太丑了，让我们把之前代码都改成使用<code>feign</code>来调用。大概就改成下面这样：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">RespDTO&lt;Result&gt; respDTO = urlClient.getTest(code);</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p> 再说一下重点：这里是使用<code>jackson</code>来反序列化数据。</p>
+</blockquote>
+<p>emm，这里其实就埋下了一个坑，使用不同反序列化工具来反序列化数据。俩种序列化工具采用的反序列化机制是有区别的：</p>
+<ul>
+<li><code>jackson</code>：默认采用<code>java Bean</code>规范的属性来反序列化数据</li>
+<li><code>fastjson</code>：默认采用对象属性名来反序列化数据</li>
+</ul>
+<p>而如果你刚好满足以下条件：</p>
+<ul>
+<li>反序列化对象中含有类似<code>aFiled</code>这种，第一个字母小写，第二个字母大写的属性名</li>
+<li>俩种序列化工具均采用默认配置</li>
+<li>这个反序列化对象使用<code>Lombok</code>来生成get、<code>set</code>方法</li>
+</ul>
+<p>恭喜你，你即将得到”成长”！你会突然发现第三方服务返回<code>aFiled</code>字段是含有值的，而你对象的<code>aFiled</code>确是没有值。如果你后面代码又用到这个属性值，生产事故就来了。</p>
+<h2 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h2><p>问题的原因就是在某种情况下，<code>Lombok</code>所生成的<code>get</code>、<code>set</code>方法是不满足<code>JavaBean</code>规范的。</p>
+<p><code>JavaBean</code>规范中规定属性名是由其<code>get</code>、<code>set</code>方法决定的(<code>boolean</code>特例)，而其<code>get</code>、<code>set</code>方法名称是由对象的变量名来决定的。通常情况下，就是首字母大写。但<code>JavaBean</code>规范又留了一手：</p>
+<blockquote>
+<p>8.8 Capitalization of inferred names.<br>When we use design patterns to infer a property or event name, we need to decide what rulesto follow for capitalizing the inferred name. If we extract the name from the middle of a normalmixedCase style Java name then the name will, by default, begin with a capital letter.<br>Java programmers are accustomed to having normal identifiers start with lower case letters.Vigorous reviewer input has convinced us that we should follow this same conventional rulefor property and event names.<br>Thus when we extract a property or event name from the middle of an existing Java name, wenormally convert the first character to lower case. However to support the occasional use of allupper-case names, we check if the first two characters of the name are both upper case and ifso leave it alone. So for example,<br>“FooBah” becomes “fooBah”<br>“Z” becomes “z”<br>“URL” becomes “URL”<br>We provide a method Introspector.decapitalize which implements this conversion rule.</p>
+</blockquote>
+<p>这就导致<code>aFiled</code>很尴尬了，它不能首字母大写，因为这样就是<code>AFiled</code>属性了。所以，这种情况下，首字母不用变，生成的get方法名称是<code>getaFiled</code>、<code>setaFiled</code>。</p>
+<p>而<code>Lombok</code>不管，它无脑首字母大写，简单粗暴。它生成的<code>get</code>方法名称是<code>getAFiled</code>，生成set方法名称是<code>setAFiled</code>。</p>
+<p>当第三方返回<code>aFiled</code>值，你又使用默认规则的<code>jackson</code>来反序列化数据时，<code>jackson</code>就会寻找这个对象是否含有<code>aFiled</code>属性，也就是找get方法名称是<code>getaFiled</code>、set方法是<code>setaFiled</code>。它找不到，<code>aFiled</code>就没设到值，一切都很合理，直到线上抱空指针错误。</p>
+<h2 id="问题解决"><a href="#问题解决" class="headerlink" title="问题解决"></a>问题解决</h2><p><code>jackson</code>可以使用<code>@JsonProperty</code>注解来指定属性名称。</p>
+<h2 id="问题总结"><a href="#问题总结" class="headerlink" title="问题总结"></a>问题总结</h2><p>如果你老项目接口含有<code>aFiled</code>这种风格的属性，谨慎使用<code>Lombok</code>。</p>
+<p>如果你老项目接收含有<code>boolean</code>这种风格的属性，谨慎使用<code>Lombok</code>，因为它生成的<code>get</code>方法也是不一样的。</p>
+<h2 id="如何避免这个问题"><a href="#如何避免这个问题" class="headerlink" title="如何避免这个问题"></a>如何避免这个问题</h2><p>站在初级程序员的角度来说，我踩过，我下次就有很大可能避免这个问题。但是如果站在项目管理者的角度来说，你要想办法让一个根本不知道这个坑的人踩不到这个坑。</p>
+<p>其实如果你项目里配置了代码检查工具的话，比如说<code>checkstyle</code>、<code>spotbugs</code>，你只要在这上面添加一条规则，不允许项目中含有这种命名方式，或者检测到有这种命名方式后，邮件通知你<code>review</code>这段代码。</p>
+<h1 id="Lombok这种Annotation-Processor"><a href="#Lombok这种Annotation-Processor" class="headerlink" title="Lombok这种Annotation Processor"></a>Lombok这种Annotation Processor</h1><p><code>Annotation</code>是<code>jdk1.5</code>引入的一个特性，网上有种说法是<code>Annotation</code>设计是用来生成新的字节码，而不是覆盖原有的字节码文件。所以说，像<code>Lombok</code>这种直接覆盖原本字节码的这种方式是不被推荐的。只不过大佬从来们都是踩着原则的，<code>Lombok</code>这么用，也还是受到很多人的欢迎。</p>
+<h2 id="Annotation-Processor过程"><a href="#Annotation-Processor过程" class="headerlink" title="Annotation Processor过程"></a><code>Annotation Processor</code>过程</h2><ul>
+<li>java编译器开始工作</li>
+<li>所有未工作的<code>Annotation Processor</code>开始工作</li>
+<li>循环处理程序中带注解的元素</li>
+<li>用已创建的类、方法和字段的元数据生成一个新类的字符串</li>
+<li>创建一个新的字节码文件并将生成的字符串写入进去</li>
+<li>编译器检查是否执行了所有<code>Annotation Processor</code>程序。如果没有，开始下一轮。</li>
+</ul>
+<p><img src="/images/annotationProcess.png"></p>
+<h2 id="写一个模仿Lombok的Getter、Setter功能"><a href="#写一个模仿Lombok的Getter、Setter功能" class="headerlink" title="写一个模仿Lombok的Getter、Setter功能"></a>写一个模仿<code>Lombok</code>的<code>Getter</code>、<code>Setter</code>功能</h2><p>1、如何生成字节码工具</p>
+<p>2、生成的字节码放到哪里</p>
+<h2 id="这种方式缺点"><a href="#这种方式缺点" class="headerlink" title="这种方式缺点"></a>这种方式缺点</h2><p>暗地修改修改字节码信息，会让后来<code>debug</code>变得很困难。比如说<code>bug</code>出现在你生成字节码那部分。写一个示例</p>
+<h1 id="Lombok的其他缺点"><a href="#Lombok的其他缺点" class="headerlink" title="Lombok的其他缺点"></a>Lombok的其他缺点</h1><p>1、equals、hashCode重写具有危险<br><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/6518534/equals-method-overrides-equals-in-superclass-and-may-not-be-symmetric">https://stackoverflow.com/questions/6518534/equals-method-overrides-equals-in-superclass-and-may-not-be-symmetric</a></p>
+<blockquote>
+<p>其实equals是判断俩个对象是否等价，如果俩个父子类的变量都是一致的；你用instanceof来拦截其实也是不对的</p>
+</blockquote>
+<hr>
+<p><a target="_blank" rel="noopener" href="https://download.oracle.com/otndocs/jcp/7224-javabeans-1.01-fr-spec-oth-JSpec/">https://download.oracle.com/otndocs/jcp/7224-javabeans-1.01-fr-spec-oth-JSpec/</a><br><a target="_blank" rel="noopener" href="https://medium.com/@iammert/annotation-processing-dont-repeat-yourself-generate-your-code-8425e60c6657">https://medium.com/@iammert/annotation-processing-dont-repeat-yourself-generate-your-code-8425e60c6657</a><br><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/13690272/code-replacement-with-an-annotation-processor">https://stackoverflow.com/questions/13690272/code-replacement-with-an-annotation-processor</a><br><a target="_blank" rel="noopener" href="https://lotabout.me/2017/Notes-on-Java-Annotation-Processor/">https://lotabout.me/2017/Notes-on-Java-Annotation-Processor/</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E9%A1%B9%E7%9B%AE%E8%A7%84%E8%8C%83/" rel="tag"># 项目规范</a>
+              <a href="/tags/Lombok/" rel="tag"># Lombok</a>
+              <a href="/tags/Annotation/" rel="tag"># Annotation</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/30/chat/start/" rel="prev" title="first blog">
+      <i class="fa fa-chevron-left"></i> first blog
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/11/08/knowledge/design/pattern/index/" rel="next" title="设计模式">
+      设计模式 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%88%E8%AF%B4%E6%88%91%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91"><span class="nav-number">1.</span> <span class="nav-text">先说我遇到的坑</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E6%8F%8F%E8%BF%B0"><span class="nav-number">1.1.</span> <span class="nav-text">问题描述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E5%88%86%E6%9E%90"><span class="nav-number">1.2.</span> <span class="nav-text">问题分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E8%A7%A3%E5%86%B3"><span class="nav-number">1.3.</span> <span class="nav-text">问题解决</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93"><span class="nav-number">1.4.</span> <span class="nav-text">问题总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E9%81%BF%E5%85%8D%E8%BF%99%E4%B8%AA%E9%97%AE%E9%A2%98"><span class="nav-number">1.5.</span> <span class="nav-text">如何避免这个问题</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Lombok%E8%BF%99%E7%A7%8DAnnotation-Processor"><span class="nav-number">2.</span> <span class="nav-text">Lombok这种Annotation Processor</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Annotation-Processor%E8%BF%87%E7%A8%8B"><span class="nav-number">2.1.</span> <span class="nav-text">Annotation Processor过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%99%E4%B8%80%E4%B8%AA%E6%A8%A1%E4%BB%BFLombok%E7%9A%84Getter%E3%80%81Setter%E5%8A%9F%E8%83%BD"><span class="nav-number">2.2.</span> <span class="nav-text">写一个模仿Lombok的Getter、Setter功能</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%99%E7%A7%8D%E6%96%B9%E5%BC%8F%E7%BC%BA%E7%82%B9"><span class="nav-number">2.3.</span> <span class="nav-text">这种方式缺点</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Lombok%E7%9A%84%E5%85%B6%E4%BB%96%E7%BC%BA%E7%82%B9"><span class="nav-number">3.</span> <span class="nav-text">Lombok的其他缺点</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">wangjie_fourth</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">47</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wangjie_fourth</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">146k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:12</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

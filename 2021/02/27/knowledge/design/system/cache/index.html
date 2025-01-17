@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="算是去年写代码中最有意思的事了，记录一下。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="缓存的学习与总结">
+<meta property="og:url" content="http://example.com/2021/02/27/knowledge/design/system/cache/index.html">
+<meta property="og:site_name" content="wangjie_fourth">
+<meta property="og:description" content="算是去年写代码中最有意思的事了，记录一下。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/desgin/system/cache/BloomFilter.png">
+<meta property="og:image" content="http://example.com/images/desgin/system/cache/Cache_Aside_Pattern.png">
+<meta property="og:image" content="http://example.com/images/desgin/system/cache/Cache_Aside_Pattern02.png">
+<meta property="og:image" content="http://example.com/images/desgin/system/cache/Read:Write_Through_Pattern.png">
+<meta property="og:image" content="http://example.com/images/desgin/system/cache/Write_Behind_Pattern.png">
+<meta property="og:image" content="http://example.com/images/desgin/system/cache/Write_Behind_Pattern01.png">
+<meta property="article:published_time" content="2021-02-27T03:50:44.000Z">
+<meta property="article:modified_time" content="2025-01-17T13:51:37.574Z">
+<meta property="article:author" content="wangjie_fourth">
+<meta property="article:tag" content="缓存">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/desgin/system/cache/BloomFilter.png">
+
+<link rel="canonical" href="http://example.com/2021/02/27/knowledge/design/system/cache/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>缓存的学习与总结 | wangjie_fourth</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">wangjie_fourth</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">may the force be with you</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/27/knowledge/design/system/cache/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wangjie_fourth">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="wangjie_fourth">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          缓存的学习与总结
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-02-27 11:50:44" itemprop="dateCreated datePublished" datetime="2021-02-27T11:50:44+08:00">2021-02-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-01-17 21:51:37" itemprop="dateModified" datetime="2025-01-17T21:51:37+08:00">2025-01-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" itemprop="url" rel="index"><span itemprop="name">系统设计</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>算是去年写代码中最有意思的事了，记录一下。</p>
+<span id="more"></span>
+
+<h1 id="缓存"><a href="#缓存" class="headerlink" title="缓存"></a>缓存</h1><p>1、缓存<br>位于速度相差较大的俩种硬件之间，用于协调俩者数据传输速度差异的结果，均可以称为<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E7%BC%93%E5%AD%98">Cache</a>。其本质就是以空间换时间。</p>
+<p>2、为什么要用缓存</p>
+<ul>
+<li>提升访问性能</li>
+<li>降低网络拥堵</li>
+<li>减少后端负载</li>
+<li>消除数据库热点</li>
+<li>可预测的性能<blockquote>
+<p>在缓存预热的情况下，这个接口能响应多少性能其实是可以计算出来的。</p>
+</blockquote>
+</li>
+<li>增加系统可扩展性</li>
+</ul>
+<h1 id="缓存的特征指标"><a href="#缓存的特征指标" class="headerlink" title="缓存的特征指标"></a>缓存的特征指标</h1><p>1、命中率<br>命中率 &#x3D; 返回正确结果数 &#x2F; 请求缓存次数</p>
+<blockquote>
+<p>命中率越高，缓存使用效率越高</p>
+</blockquote>
+<p>2、最大空间<br>缓存中可以存放的最大元素的数量</p>
+<p>3、缓存生存时间TTL<br>缓存可以存活的时间，超过时间就失效</p>
+<p>4、缓存清空策略<br>缓存可使用的存储空间有限，占满后就需要清除一些缓存，清空策略就决定了要清空哪些缓存：</p>
+<ul>
+<li><code>FIFO</code>(<code>first in first out</code>)：先进先出，最先进入缓存的数据会被优先被清除掉，比较缓存元素的创建时间， 优先保障最新数据可用</li>
+<li><code>LFU</code>(<code>less frequently used</code>)：最少使用，根据元素的被使用次数判断，使用次数较少的数据将被删掉</li>
+<li><code>LRU</code>(<code>least recently used</code>)：最近最少使用，假设最近最少使用的那些信息，将来被使用的概率也不大，根据数据最后一次被使用的时间戳来决定，把最老的数据删掉【如何实现？面试题 】</li>
+<li>定时过期：每个设置过期时间的key都需要创建一个定时器，到过期时间就会立即清除</li>
+<li>惰性过期：只有当访问一个key时，才会判断该key是否已过期，过期则清除</li>
+<li>最长过期：根据过期时间，清理最长时间没用过的</li>
+<li>最近过期：根据过期时间，清理即将过期的</li>
+<li>随机过期清理：根据过期时间，任意清理一个</li>
+<li>随机清理：无论是否过期，随机清理</li>
+</ul>
+<h1 id="缓存常见的问题"><a href="#缓存常见的问题" class="headerlink" title="缓存常见的问题"></a>缓存常见的问题</h1><h2 id="缓存失效"><a href="#缓存失效" class="headerlink" title="缓存失效"></a>缓存失效</h2><h3 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h3><p>在正常情况下，一些数据会被放在缓存里，等到后端服务系统查数据，首先会查缓存，如果缓存数据不存在，就进一步查<code>DB</code>，最后查到数据后回种到缓存并返回。但在某些情况下，比如说缓存剔除机制，会在下一次查询之前就把数据删除了，导致此次查询并没有走缓存。</p>
+<h3 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h3><p>在某些特殊情况下，如果需要在同一时刻批量将数据写入缓存，如大促商品，那么由于设置同样的过期时间，在某一时刻这一大批的数据会同时失效，请求全部落在数据库上</p>
+<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h3><p>思路：不让相同业务中的所有数据都使用同一固定过期时间，在预设固定过期时间上再加上随机过期时间</p>
+<blockquote>
+<p>expired time &#x3D; base expired time + random time</p>
+</blockquote>
+<h2 id="缓存穿透"><a href="#缓存穿透" class="headerlink" title="缓存穿透"></a>缓存穿透</h2><h3 id="问题描述-1"><a href="#问题描述-1" class="headerlink" title="问题描述"></a>问题描述</h3><p>用户用非法数据请求，缓存和数据库都没有要请求的数据，这样每一个请求都会落到<code>DB</code>。</p>
+<h3 id="分析-1"><a href="#分析-1" class="headerlink" title="分析"></a>分析</h3><ul>
+<li>编码的时候只考虑了<code>happy path</code>，对异常访问和特殊访问考虑不周</li>
+<li>用户用不存在的<code>key</code>访问，首先在<code>cache</code>里查不到这个数据，之后会落到数据库，发现数据库中也没有，会返回空。之后每一次用这个非法<code>key</code>去查询，都不可能命中缓存，也都会落到数据库。如果某一时刻，有大量的非法请求，会影响系统正常服务</li>
+</ul>
+<h3 id="解决方案-1"><a href="#解决方案-1" class="headerlink" title="解决方案"></a>解决方案</h3><h4 id="方案一：返回空值（特殊值代表空值）-提前校验"><a href="#方案一：返回空值（特殊值代表空值）-提前校验" class="headerlink" title="方案一：返回空值（特殊值代表空值）+ 提前校验"></a>方案一：返回空值（特殊值代表空值）+ 提前校验</h4><ul>
+<li>查询这些不存在的数据时，在第一次查询完数据库后虽然没查到结果，仍然将这个<code>key</code>写到缓存中（可以是本地<code>cache</code>），只是这个<code>key</code>对应的<code>value</code>是一个特殊设置的值用于代表空值</li>
+<li>另外，在请求的最上面就进行校验，通过一些规则过滤掉非法数据</li>
+</ul>
+<p>缺点：会影响正常<code>cache</code>命中率</p>
+<h4 id="方案二：BloomFilter"><a href="#方案二：BloomFilter" class="headerlink" title="方案二：BloomFilter"></a>方案二：BloomFilter</h4><p>构建一个<code>BloomFilter</code>缓存过滤器，记录全量<code>key</code>，请求到达时，通过<code>BloomFilter</code>判断这个<code>key</code>是否存在，如果不存在直接返回即可<br><img src="/images/desgin/system/cache/BloomFilter.png"><br><code>BloomFilter</code>简单原理：</p>
+<ul>
+<li>分配一块内存空间做<code>bit</code>数组，数组的<code>bit</code>位初始值全部设为 0</li>
+<li>加入元素：用<code>k</code>个相互独立的<code>Hash</code>函数计算，然后将元素<code>Hash</code>映射的<code>k</code>个位置全部设置为1</li>
+<li>检测<code>key</code>：仍然用这<code>k</code>个<code>Hash</code>函数计算出<code>k</code>个位置，如果位置全部为<code>1</code>，则表明<code>key</code>存在，否则不存在<blockquote>
+<p>Google Guava里面有现成布隆过滤器实现</p>
+</blockquote>
+</li>
+</ul>
+<p>缺点：1. 有误识别率【可以增加多个BloomFilter提高识别率】 2. 删除元素困难</p>
+<h2 id="缓存雪崩"><a href="#缓存雪崩" class="headerlink" title="缓存雪崩"></a>缓存雪崩</h2><p>1、问题描述<br>部分缓存节点不可用，导致服务降级甚至系统不可用的情况</p>
+<p>2、问题分析<br>缓存雪崩根据缓存实现方案有两种情况：</p>
+<ul>
+<li>缓存系统不支持<code>rehash</code>时的缓存雪崩</li>
+<li>缓存系统支持<code>rehash</code>时的缓存雪崩</li>
+</ul>
+<p>3、解决方案</p>
+<ul>
+<li><code>Fail Fast</code>开关机制：当高时延请求到达设置阈值后，对于请求快速失败，服务降级保核心服务；【只针对不核心的业务模块】</li>
+<li>增加缓存节点副本, 一个节点坏了可以从其他副本节点读取;【一致性哈希算法，尽量减少缓存数据的移动】</li>
+</ul>
+<h2 id="缓存数据不一致"><a href="#缓存数据不一致" class="headerlink" title="缓存数据不一致"></a>缓存数据不一致</h2><h3 id="问题描述-2"><a href="#问题描述-2" class="headerlink" title="问题描述"></a>问题描述</h3><ul>
+<li>同一份数据，可能会同时存在<code>DB</code>和缓存之中，<code>DB</code>和缓存中的数据也可能会不一致</li>
+<li>如果缓存有多个副本，多个缓存副本里的数据也可能会不一致</li>
+</ul>
+<h3 id="分析-2"><a href="#分析-2" class="headerlink" title="分析"></a>分析</h3><ul>
+<li>主要原因：更新缓存出现异常</li>
+<li>更新数据库成功后缓存更新失败，数据库是最新数据，缓存中仍是老数据</li>
+<li>更新多个缓存副本时其中一些副本更新失败，导致一些节点是新数据，一些是老数据<blockquote>
+<p>需要考虑分布式情况下的数据复制情况</p>
+</blockquote>
+</li>
+</ul>
+<h3 id="解决方案-2"><a href="#解决方案-2" class="headerlink" title="解决方案"></a>解决方案</h3><ul>
+<li>加入<code>retry</code>机制尽可能地减少缓存更新失败，如果重试失败，要将失败的<code>key</code>想办法记录下来，再次访问时要使这些数据</li>
+<li>将缓存数据<code>ttl</code>根据需求适当调短，让缓存数据过期后可以从数据库重新加载，确保最终一致性</li>
+</ul>
+<h2 id="热点数据缓存问题"><a href="#热点数据缓存问题" class="headerlink" title="热点数据缓存问题"></a>热点数据缓存问题</h2><h3 id="问题描述-3"><a href="#问题描述-3" class="headerlink" title="问题描述"></a>问题描述</h3><p>在真实系统中数据会有冷热之分，如微博热搜，爆款商品，最新的新闻一定是访问频率最高的数据，这些都是热点数据。在某个时刻大量用户同时去访问热点数据，那么热点数据所在的缓存节点就会压力山大</p>
+<h3 id="分析-3"><a href="#分析-3" class="headerlink" title="分析"></a>分析</h3><p>主要原因：大量请求同一个<code>hot key</code>，流量集中到一个缓存节点机器，缓存机器很容易到达到物理资源极限（物理网卡、带宽、CPU）</p>
+<h3 id="解决方案-3"><a href="#解决方案-3" class="headerlink" title="解决方案"></a>解决方案</h3><p>最重要的一点是要找到热点数据，提取防范。<br>找到后可以提前预热，如设置多级缓存 + 多副本，另外也可以考虑到将热点数据分散到多个不同的缓存节点</p>
+<h2 id="并发竞争"><a href="#并发竞争" class="headerlink" title="并发竞争"></a>并发竞争</h2><h3 id="问题描述-4"><a href="#问题描述-4" class="headerlink" title="问题描述"></a>问题描述</h3><ul>
+<li>在多个线程&#x2F;进程中有大量并发请求获取相同的数据，而恰好数据因为种种原因在缓存中不存在，导致并发查询<code>DB</code></li>
+<li>有不同的<code>client</code>同时对同一个<code>key</code>设置不同的值</li>
+</ul>
+<h3 id="分析-4"><a href="#分析-4" class="headerlink" title="分析"></a>分析</h3><p>主要原因：线程&#x2F;进程之间没有协调机制</p>
+<h3 id="解决方案-4"><a href="#解决方案-4" class="headerlink" title="解决方案"></a>解决方案</h3><p>串行化：分布式锁、消息队列</p>
+<h1 id="缓存读写更新模式"><a href="#缓存读写更新模式" class="headerlink" title="缓存读写更新模式"></a>缓存读写更新模式</h1><h2 id="Cache-Aside-Pattern"><a href="#Cache-Aside-Pattern" class="headerlink" title="Cache Aside Pattern"></a>Cache Aside Pattern</h2><p><img src="/images/desgin/system/cache/Cache_Aside_Pattern.png"><br>1、工作流程<br>读数据：</p>
+<ul>
+<li>命中缓存：从Cache中取到数据后返回</li>
+<li>未命中缓存：先从Cache中取数据，如果没有得到，则从数据库中取数据，成功后放到缓存中并返回给用户</li>
+</ul>
+<p>写数据：<br>先把数据存到数据库中，成功后再让<strong>缓存失效（删除缓存）</strong></p>
+<p>2、适用场景<br>对数据一致性要求比较高的业务，或者是缓存数据更新比较复杂的业务，这些情况都比较适合使用 Cache Aside 模式</p>
+<p>3、详解<br>（1）为什么先操作数据库，然后再操作缓存？<br>并发写时无法保证时序，可能出现数据不一致</p>
+<p>（2）为什么删掉缓存，而不是更新缓存?<br> 在读写并发时，可能出现数据不一致<br> <img src="/images/desgin/system/cache/Cache_Aside_Pattern02.png"></p>
+<p>4、缺点<br>可能会出现数据不一致的情况。比如说：<br> 一个是读操作，但是没有命中缓存，然后就到数据库中取数据，此时来了一个写操作，写完数据库后，让缓存失效，然后，之前的那个读操作再把老的数据放进去</p>
+<p> 5、解决方案</p>
+<ul>
+<li>加分布式锁串行化</li>
+<li>设置较短<code>ttl</code>让缓存较快过期</li>
+</ul>
+<h2 id="Read-Write-Through-Pattern"><a href="#Read-Write-Through-Pattern" class="headerlink" title="Read&#x2F;Write Through Pattern"></a>Read&#x2F;Write Through Pattern</h2><p><img src="/images/desgin/system/cache/Read:Write_Through_Pattern.png"><br>在<code>Cache Aside</code>模式下，业务系统需要同时维护<code>Cache</code>和<code>DB</code>两个数据存储，过于繁琐。应该设置一个存储服务组件代理完成对<code>Cache</code>和<code>DB</code>的读写操作。</p>
+<p>1、工作流程<br>写数据：</p>
+<ul>
+<li>先查缓存，如果在缓存不存在，两种策略<ul>
+<li><code>no-write allication</code>：只直接更新<code>db</code>，不会写入缓存（更为常用）</li>
+<li><code>write allication</code>：先更新<code>Cache</code>，然后通过存储服务组件更新<code>DB</code></li>
+</ul>
+</li>
+<li>如果数据在<code>Cache</code>中，则先更新<code>Cache</code>，然后通过存储服务组件更新<code>DB</code></li>
+</ul>
+<p>读数据：</p>
+<ul>
+<li>先查询缓存，如果数据在缓存存在则直接返回</li>
+<li>若不存在，由存储服务组件从数据库中同步加载数据到缓存中</li>
+</ul>
+<p>2、适用场景<br>对系统有较高隔离性要求，数据有冷热之分的业务</p>
+<blockquote>
+<p>Guava中的Loading Cache比较像Read Through</p>
+</blockquote>
+<p>3、缺点<br>同步写数据库延迟较高</p>
+<h2 id="Write-Behind-Pattern"><a href="#Write-Behind-Pattern" class="headerlink" title="Write Behind Pattern"></a>Write Behind Pattern</h2><p><img src="/images/desgin/system/cache/Write_Behind_Pattern.png"><br><img src="/images/desgin/system/cache/Write_Behind_Pattern01.png"><br>1、介绍<br><code>Write Behind Pattern</code>是想在更新数据的时候，只更新缓存，不更新数据库，缓存会异步批量更新数据库</p>
+<p>2、适用场景<br>大量写请求，可以合并写请求的业务</p>
+<p>3、缺点<br>数据一致性差，存在数据丢失的可能</p>
+<hr>
+<p><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E7%BC%93%E5%AD%98">https://zh.wikipedia.org/wiki/%E7%BC%93%E5%AD%98</a><br><a target="_blank" rel="noopener" href="https://coolshell.cn/articles/17416.html">https://coolshell.cn/articles/17416.html</a><br><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/koKDacEH1v9M6B-XDFfuOw">https://mp.weixin.qq.com/s/koKDacEH1v9M6B-XDFfuOw</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%BC%93%E5%AD%98/" rel="tag"># 缓存</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/02/20/knowledge/Linux/IO-Models/" rel="prev" title="计算机IO模型总结">
+      <i class="fa fa-chevron-left"></i> 计算机IO模型总结
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/03/05/knowledge/MySQL/transaction/" rel="next" title="MySQL的事务">
+      MySQL的事务 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BC%93%E5%AD%98"><span class="nav-number">1.</span> <span class="nav-text">缓存</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BC%93%E5%AD%98%E7%9A%84%E7%89%B9%E5%BE%81%E6%8C%87%E6%A0%87"><span class="nav-number">2.</span> <span class="nav-text">缓存的特征指标</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BC%93%E5%AD%98%E5%B8%B8%E8%A7%81%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">3.</span> <span class="nav-text">缓存常见的问题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%93%E5%AD%98%E5%A4%B1%E6%95%88"><span class="nav-number">3.1.</span> <span class="nav-text">缓存失效</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E6%8F%8F%E8%BF%B0"><span class="nav-number">3.1.1.</span> <span class="nav-text">问题描述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E6%9E%90"><span class="nav-number">3.1.2.</span> <span class="nav-text">分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-number">3.1.3.</span> <span class="nav-text">解决方案</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%93%E5%AD%98%E7%A9%BF%E9%80%8F"><span class="nav-number">3.2.</span> <span class="nav-text">缓存穿透</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E6%8F%8F%E8%BF%B0-1"><span class="nav-number">3.2.1.</span> <span class="nav-text">问题描述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E6%9E%90-1"><span class="nav-number">3.2.2.</span> <span class="nav-text">分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88-1"><span class="nav-number">3.2.3.</span> <span class="nav-text">解决方案</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E4%B8%80%EF%BC%9A%E8%BF%94%E5%9B%9E%E7%A9%BA%E5%80%BC%EF%BC%88%E7%89%B9%E6%AE%8A%E5%80%BC%E4%BB%A3%E8%A1%A8%E7%A9%BA%E5%80%BC%EF%BC%89-%E6%8F%90%E5%89%8D%E6%A0%A1%E9%AA%8C"><span class="nav-number">3.2.3.1.</span> <span class="nav-text">方案一：返回空值（特殊值代表空值）+ 提前校验</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E4%BA%8C%EF%BC%9ABloomFilter"><span class="nav-number">3.2.3.2.</span> <span class="nav-text">方案二：BloomFilter</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%93%E5%AD%98%E9%9B%AA%E5%B4%A9"><span class="nav-number">3.3.</span> <span class="nav-text">缓存雪崩</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%93%E5%AD%98%E6%95%B0%E6%8D%AE%E4%B8%8D%E4%B8%80%E8%87%B4"><span class="nav-number">3.4.</span> <span class="nav-text">缓存数据不一致</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E6%8F%8F%E8%BF%B0-2"><span class="nav-number">3.4.1.</span> <span class="nav-text">问题描述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E6%9E%90-2"><span class="nav-number">3.4.2.</span> <span class="nav-text">分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88-2"><span class="nav-number">3.4.3.</span> <span class="nav-text">解决方案</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%83%AD%E7%82%B9%E6%95%B0%E6%8D%AE%E7%BC%93%E5%AD%98%E9%97%AE%E9%A2%98"><span class="nav-number">3.5.</span> <span class="nav-text">热点数据缓存问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E6%8F%8F%E8%BF%B0-3"><span class="nav-number">3.5.1.</span> <span class="nav-text">问题描述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E6%9E%90-3"><span class="nav-number">3.5.2.</span> <span class="nav-text">分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88-3"><span class="nav-number">3.5.3.</span> <span class="nav-text">解决方案</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B6%E5%8F%91%E7%AB%9E%E4%BA%89"><span class="nav-number">3.6.</span> <span class="nav-text">并发竞争</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E6%8F%8F%E8%BF%B0-4"><span class="nav-number">3.6.1.</span> <span class="nav-text">问题描述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E6%9E%90-4"><span class="nav-number">3.6.2.</span> <span class="nav-text">分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88-4"><span class="nav-number">3.6.3.</span> <span class="nav-text">解决方案</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BC%93%E5%AD%98%E8%AF%BB%E5%86%99%E6%9B%B4%E6%96%B0%E6%A8%A1%E5%BC%8F"><span class="nav-number">4.</span> <span class="nav-text">缓存读写更新模式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Cache-Aside-Pattern"><span class="nav-number">4.1.</span> <span class="nav-text">Cache Aside Pattern</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Read-Write-Through-Pattern"><span class="nav-number">4.2.</span> <span class="nav-text">Read&#x2F;Write Through Pattern</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Write-Behind-Pattern"><span class="nav-number">4.3.</span> <span class="nav-text">Write Behind Pattern</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">wangjie_fourth</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">47</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wangjie_fourth</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">146k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:12</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

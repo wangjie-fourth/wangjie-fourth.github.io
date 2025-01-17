@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="什么是零拷贝零拷贝技术是指计算机执行操作时，CPU不需要先将数据从某处内存复制到另一个特定区域，并且尽可能的让CPU少参与到复制的过程。这种技术通常用于通过网络传输文件时节省CPU周期和内存带宽。现在常见实现方式是CPU将这种复制操作指定给DMA，由DMA来完成这个数据转移，CPU在整个过程中只需要执行几个指令即可。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="零拷贝的了解与总结">
+<meta property="og:url" content="http://example.com/2021/02/09/knowledge/Linux/zero-copy/index.html">
+<meta property="og:site_name" content="wangjie_fourth">
+<meta property="og:description" content="什么是零拷贝零拷贝技术是指计算机执行操作时，CPU不需要先将数据从某处内存复制到另一个特定区域，并且尽可能的让CPU少参与到复制的过程。这种技术通常用于通过网络传输文件时节省CPU周期和内存带宽。现在常见实现方式是CPU将这种复制操作指定给DMA，由DMA来完成这个数据转移，CPU在整个过程中只需要执行几个指令即可。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/Linux/zero-copy/normal-io.jpg">
+<meta property="og:image" content="http://example.com/images/Linux/zero-copy/linux-io-copy-compare.jpg">
+<meta property="article:published_time" content="2021-02-09T07:24:48.000Z">
+<meta property="article:modified_time" content="2025-01-17T13:51:37.570Z">
+<meta property="article:author" content="wangjie_fourth">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/Linux/zero-copy/normal-io.jpg">
+
+<link rel="canonical" href="http://example.com/2021/02/09/knowledge/Linux/zero-copy/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>零拷贝的了解与总结 | wangjie_fourth</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">wangjie_fourth</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">may the force be with you</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/09/knowledge/Linux/zero-copy/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wangjie_fourth">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="wangjie_fourth">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          零拷贝的了解与总结
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-02-09 15:24:48" itemprop="dateCreated datePublished" datetime="2021-02-09T15:24:48+08:00">2021-02-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-01-17 21:51:37" itemprop="dateModified" datetime="2025-01-17T21:51:37+08:00">2025-01-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="什么是零拷贝"><a href="#什么是零拷贝" class="headerlink" title="什么是零拷贝"></a>什么是零拷贝</h1><p>零拷贝技术是指计算机执行操作时，<code>CPU</code>不需要先将数据从某处内存复制到另一个特定区域，并且尽可能的让<code>CPU</code>少参与到复制的过程。这种技术通常用于通过网络传输文件时节省<code>CPU</code>周期和内存带宽。<br>现在常见实现方式是<code>CPU</code>将这种复制操作指定给<code>DMA</code>，由<code>DMA</code>来完成这个数据转移，<code>CPU</code>在整个过程中只需要执行几个指令即可。</p>
+<span id="more"></span>
+
+<h1 id="为什么需要零拷贝"><a href="#为什么需要零拷贝" class="headerlink" title="为什么需要零拷贝"></a>为什么需要零拷贝</h1><p>需要零拷贝的原因就是在传输文件的时候，为了更大的发挥计算机的性能。使用零拷贝技术相比较普通IO技术：</p>
+<ul>
+<li>能够使得<code>CPU</code>不参与复制过程，转而去执行其他任务；</li>
+<li>减少CPU上下文切换次数</li>
+<li>减少用户线程升级内核态次数</li>
+</ul>
+<p>想要更加深入了解整个过程，需要明白以下几个概念。</p>
+<h2 id="内核空间和用户空间"><a href="#内核空间和用户空间" class="headerlink" title="内核空间和用户空间"></a>内核空间和用户空间</h2><p>在计算机启动的时候，整个虚拟内存可以分为内核空间和用户空间。</p>
+<ul>
+<li>内核空间：操作系统为内核软件预留的空间；用户线程是不允许直接对该空间操作，通过要先将自己升级为内核态才行；</li>
+<li>用户空间：普通应用程序使用的虚拟内存</li>
+</ul>
+<p>这里要注意到，应用程序在将磁盘某个文件复制到某个端口时，应用线程是不能自己执行去拿数据的，必须要经过内核空间去执行。</p>
+<h2 id="Linux的IO读写方式"><a href="#Linux的IO读写方式" class="headerlink" title="Linux的IO读写方式"></a>Linux的IO读写方式</h2><p>计算机的IO操作大概可以分为三种：</p>
+<ul>
+<li><code>IO</code>轮询</li>
+<li>中断操作</li>
+<li><code>DMA</code>执行</li>
+</ul>
+<p>这里我们要明白<code>IO</code>轮询、中断操作方式，都是由<code>CPU</code>来完成数据复制过程；而且因为<code>IO</code>操作远慢于<code>CPU</code>操作，所以<code>CPU</code>最少要执行4次上下文切换操作。如果这台计算机频繁的执行<code>IO</code>复制操作，那么它<code>CPU</code>就很难有时间去执行其他任务。<br>而使用<code>DMA</code>的话，其数据复制过程是不需要<code>CPU</code>来操作，整个过程<code>CPU</code>只需要执行几个指令让<code>DMA</code>去干这种事。所以，这个时候<code>CPU</code>最多只会执行2次上下文切换操作。</p>
+<h2 id="传统复制vs零拷贝"><a href="#传统复制vs零拷贝" class="headerlink" title="传统复制vs零拷贝"></a>传统复制vs零拷贝</h2><p>1、传统复制<br><img src="/images/Linux/zero-copy/normal-io.jpg"><br>应用程序想要下载某个文件时，大概需要以下几步：</p>
+<ul>
+<li>告诉<code>CPU</code>把某个磁盘文件移到某个网络端口上；</li>
+<li><code>CPU</code>停下手里的活，让<code>DMA</code>把磁盘文件读取到某个内核缓冲区空间里，然后转过头又做自己的事了；</li>
+<li><code>DMA</code>将磁盘文件移到内核缓冲区后，告诉<code>CPU</code>数据准备好了；</li>
+<li><code>CPU</code>停下手里的活，让把这个内核缓冲区数据复制到用户程序的用户空间内；</li>
+<li>然后，应用程序告诉<code>CPU</code>把自己空间的数据复制内核缓冲区里，有一个端口会读取这个数据的；</li>
+<li><code>CPU</code>停下手里的活，把应用程序的数据复制到内核缓冲区里，然后告诉<code>DMA</code>去把这个数据移到某个网络端口上；</li>
+<li><code>DMA</code>把内核缓冲区数据复制到网络端口后，告诉<code>CPU</code>活已经干完了；</li>
+<li><code>CPU</code>停下手里的活，告诉应用程序刚才的活已经干完了；</li>
+</ul>
+<p>2、零拷贝<br>零拷贝的实现方式就很多了，但有一点就是这些数据不会再复制到应用程序空间里，有些特别情况下，整个复制操作可能减少到2次就能完成上述操作。</p>
+<h1 id="Linux相关指令"><a href="#Linux相关指令" class="headerlink" title="Linux相关指令"></a>Linux相关指令</h1><p>太多了，下面链接有介绍。但还是有一个图需要介绍一下的：<br><img src="/images/Linux/zero-copy/linux-io-copy-compare.jpg"></p>
+<h1 id="其他技术实现零拷贝的方式"><a href="#其他技术实现零拷贝的方式" class="headerlink" title="其他技术实现零拷贝的方式"></a>其他技术实现零拷贝的方式</h1><h2 id="Java的NIO"><a href="#Java的NIO" class="headerlink" title="Java的NIO"></a>Java的NIO</h2><h2 id="Netty"><a href="#Netty" class="headerlink" title="Netty"></a>Netty</h2><h2 id="Kafka"><a href="#Kafka" class="headerlink" title="Kafka"></a>Kafka</h2><h2 id="RocketMQ"><a href="#RocketMQ" class="headerlink" title="RocketMQ"></a>RocketMQ</h2><hr>
+<p><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E9%9B%B6%E5%A4%8D%E5%88%B6">https://zh.wikipedia.org/wiki/%E9%9B%B6%E5%A4%8D%E5%88%B6</a><br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/83398714">https://zhuanlan.zhihu.com/p/83398714</a><br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/308054212">https://zhuanlan.zhihu.com/p/308054212</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/02/09/knowledge/MySQL/summary/" rel="prev" title="MySQL的学习与总结">
+      <i class="fa fa-chevron-left"></i> MySQL的学习与总结
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/02/20/knowledge/Linux/IO-Models/" rel="next" title="计算机IO模型总结">
+      计算机IO模型总结 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E9%9B%B6%E6%8B%B7%E8%B4%9D"><span class="nav-number">1.</span> <span class="nav-text">什么是零拷贝</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E9%9B%B6%E6%8B%B7%E8%B4%9D"><span class="nav-number">2.</span> <span class="nav-text">为什么需要零拷贝</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E6%A0%B8%E7%A9%BA%E9%97%B4%E5%92%8C%E7%94%A8%E6%88%B7%E7%A9%BA%E9%97%B4"><span class="nav-number">2.1.</span> <span class="nav-text">内核空间和用户空间</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Linux%E7%9A%84IO%E8%AF%BB%E5%86%99%E6%96%B9%E5%BC%8F"><span class="nav-number">2.2.</span> <span class="nav-text">Linux的IO读写方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BC%A0%E7%BB%9F%E5%A4%8D%E5%88%B6vs%E9%9B%B6%E6%8B%B7%E8%B4%9D"><span class="nav-number">2.3.</span> <span class="nav-text">传统复制vs零拷贝</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Linux%E7%9B%B8%E5%85%B3%E6%8C%87%E4%BB%A4"><span class="nav-number">3.</span> <span class="nav-text">Linux相关指令</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%B6%E4%BB%96%E6%8A%80%E6%9C%AF%E5%AE%9E%E7%8E%B0%E9%9B%B6%E6%8B%B7%E8%B4%9D%E7%9A%84%E6%96%B9%E5%BC%8F"><span class="nav-number">4.</span> <span class="nav-text">其他技术实现零拷贝的方式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Java%E7%9A%84NIO"><span class="nav-number">4.1.</span> <span class="nav-text">Java的NIO</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Netty"><span class="nav-number">4.2.</span> <span class="nav-text">Netty</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Kafka"><span class="nav-number">4.3.</span> <span class="nav-text">Kafka</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RocketMQ"><span class="nav-number">4.4.</span> <span class="nav-text">RocketMQ</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">wangjie_fourth</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">47</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wangjie_fourth</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">146k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:12</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
